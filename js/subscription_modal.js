@@ -55,23 +55,53 @@ if (SUBSCRIPTION_DATA.length === 0) {
     SUBSCRIPTION_DATA.push(...DEFAULT_SUBSCRIPTION_DATA);
 }
 
-// data/subscriptions.json 서버 데이터 비동기 동기화 (PC-모바일 실시간 값 공유)
+// data/subscriptions.json 서버 데이터 비동기 동기화 (PC-모바일 실시간 값 공유 + 로컬 신규 데이터 스마트 병합)
 async function syncServerSubscriptions() {
     try {
         const res = await fetch('data/subscriptions.json?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
-            const list = await res.json();
-            if (Array.isArray(list)) {
-                // 서버에서 삭제되어 빈 배열([])인 경우도 100% 실시간 모바일 동기화 반영
+            const serverList = await res.json();
+            if (Array.isArray(serverList)) {
+                // 삭제된 ID 목록 조회
+                let deletedIds = [];
+                try {
+                    deletedIds = JSON.parse(localStorage.getItem('sumokto_deleted_subs') || '[]');
+                } catch(e) {}
+
+                // 현재 로컬스토리지에 저장되어 있는 최신 데이터
+                let localList = [];
+                try {
+                    const saved = localStorage.getItem('sumokto_custom_subscriptions');
+                    if (saved) localList = JSON.parse(saved);
+                } catch(e) {}
+                if (!Array.isArray(localList)) localList = [];
+
+                // 1) 서버 데이터 중 삭제된 ID는 제외
+                const filteredServerList = serverList.filter(item => item && !deletedIds.includes(item.id));
+
+                // 2) 로컬에만 있는 신규 등록 아이템(서버 배포 딜레이 동안 미반영된 아이템) 보존
+                const serverIdSet = new Set(filteredServerList.map(item => item.id));
+                const localOnlyItems = localList.filter(item => item && !deletedIds.includes(item.id) && !serverIdSet.has(item.id));
+
+                // 3) 스마트 합산: 로컬 신규 아이템 + 서버 최신 아이템 (새로고침 시 신규 등록건 절대 유실 방지)
+                const mergedList = [...localOnlyItems, ...filteredServerList];
+
+                // 만약 합산 결과가 비어있고 삭제 이력도 없으면 기본 데이터 유지
+                if (mergedList.length === 0 && deletedIds.length === 0) {
+                    mergedList.push(...DEFAULT_SUBSCRIPTION_DATA);
+                }
+
                 SUBSCRIPTION_DATA.length = 0;
-                SUBSCRIPTION_DATA.push(...list);
+                SUBSCRIPTION_DATA.push(...mergedList);
                 try {
                     localStorage.setItem('sumokto_custom_subscriptions', JSON.stringify(SUBSCRIPTION_DATA));
                 } catch (e) {}
                 renderSubscriptionList(currentSubPage || 1);
             }
         }
-    } catch (e) {}
+    } catch (e) {
+        console.warn('syncServerSubscriptions error:', e);
+    }
 }
 syncServerSubscriptions();
 
@@ -607,7 +637,7 @@ async function syncSubscriptionToServer(data, forcePrompt = false) {
             : (localStorage.getItem('chebol_github_token') || '');
         const repo = (typeof GitHubSyncManager !== 'undefined' && GitHubSyncManager.REPO) 
             ? GitHubSyncManager.REPO 
-            : 'oransee3/SuMokTo-Webpage';
+            : 'oransee1/sumokto-agent';
 
         // 토큰이 없거나 강제 입력 요청 시 무조건 입력 창 띄우기
         if (!token || forcePrompt) {
@@ -684,7 +714,9 @@ async function syncSubscriptionToServer(data, forcePrompt = false) {
             lng: item.lng || (item.title && item.title.includes('하늘채') ? 127.41979 : 127.41979)
         }));
         const jsonStr = JSON.stringify(cleanData, null, 2);
-        const contentBase64 = btoa(unescape(encodeURIComponent(jsonStr)));
+        const contentBase64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+            return String.fromCharCode('0x' + p1);
+        }));
         const body = {
             message: `feat: sync subscriptions data (${new Date().toLocaleString('ko-KR')})`,
             content: contentBase64,
@@ -711,6 +743,9 @@ async function syncSubscriptionToServer(data, forcePrompt = false) {
                 if (confirm(`GitHub 토큰 권한 문제로 저장이 완료되지 않았습니다.\n토큰을 다시 입력하여 재시도하시겠습니까?`)) {
                     syncSubscriptionToServer(data, true);
                 }
+            } else {
+                const errData = await putRes.json().catch(() => ({}));
+                console.warn('GitHub API error details:', errData);
             }
         }
     } catch (err) {
@@ -730,6 +765,15 @@ function deleteSubscriptionItem(id) {
     const title = item ? item.title : '해당';
     const confirmDelete = confirm(`'${title}' 분양 정보를 삭제하시겠습니까?`);
     if (!confirmDelete) return;
+
+    // 삭제된 아이템 ID를 저장하여 서버 동기화 시 재부활 방지
+    try {
+        const deletedIds = JSON.parse(localStorage.getItem('sumokto_deleted_subs') || '[]');
+        if (!deletedIds.includes(id)) {
+            deletedIds.push(id);
+            localStorage.setItem('sumokto_deleted_subs', JSON.stringify(deletedIds));
+        }
+    } catch(e) {}
 
     const idx = SUBSCRIPTION_DATA.findIndex(i => i.id === id);
     if (idx !== -1) {

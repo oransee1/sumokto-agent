@@ -395,7 +395,7 @@ const CSVParser = {
 // ==========================================
 const GitHubSyncManager = {
   KEY_GITHUB_TOKEN: 'chebol_github_token',
-  REPO: 'oransee3/SuMokTo-Webpage',
+  REPO: 'oransee1/sumokto-agent',
   cachedServerToken: '',
 
   getToken() {
@@ -615,7 +615,7 @@ const PropertyManager = {
       const modifiedMap = this.getModifiedMap();
 
       // 1순위: GitHub Raw URL (GitHub 커밋 즉시 0.1초 만에 전 세계 실시간 반영)
-      const rawUrl = `https://raw.githubusercontent.com/oransee3/SuMokTo-Webpage/main/data/properties.json?t=${Date.now()}`;
+      const rawUrl = `https://raw.githubusercontent.com/oransee1/sumokto-agent/main/data/properties.json?t=${Date.now()}`;
       let res = await fetch(rawUrl, { cache: 'no-store' });
 
       // 2순위: Vercel 정적 파일
