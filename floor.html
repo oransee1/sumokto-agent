@@ -172,28 +172,48 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        @media (max-width: 639px) {
-            #plan-view-A img {
-                transform: scale(1.235) !important;
-                transform-origin: center center !important;
-            }
-            #plan-view-C img {
-                max-width: 100% !important;
-                height: auto !important;
-                max-height: 380px !important;
-                transform: scale(1.075) !important;
-                transform-origin: center center !important;
-            }
+
+        /* 이미지 도용 및 불법 복사/드래그 차단 스타일 */
+        img {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            -webkit-user-drag: none !important;
+            -khtml-user-drag: none !important;
+            -moz-user-drag: none !important;
+            -o-user-drag: none !important;
+            user-drag: none !important;
+            -webkit-touch-callout: none !important;
         }
-        @media (min-width: 640px) {
-            #plan-view-C img {
-                width: 500px !important;
-                max-width: 500px !important;
-                height: auto !important;
-                max-height: 420px !important;
-                transform: none !important;
-                margin: 0 auto !important;
-            }
+
+        /* 서브 커스텀 가로/세로 스크롤바 */
+        .sub-custom-scrollbar::-webkit-scrollbar {
+            height: 5px;
+            width: 5px;
+        }
+        .sub-custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(24, 24, 27, 0.6);
+            border-radius: 9999px;
+        }
+        .sub-custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 9999px;
+        }
+        .sub-custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #D4AF37;
+        }
+
+        /* 일체형 스플릿 쇼룸 카드 입체 그림자 */
+        .showroom-split-card {
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
+        .floor-plan-img {
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .floor-plan-box:hover .floor-plan-img {
+            transform: scale(1.025);
         }
     </style>
 </head>
@@ -354,183 +374,351 @@
     </header>
 
     <!-- ========================================== -->
-    <!-- 3. 평면안내 메인 섹션                      -->
+    <!-- 3. 평면안내 메인 섹션: 하이엔드 쇼룸 스플릿   -->
     <!-- ========================================== -->
-    <main class="max-w-7xl xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10 sm:pt-32 sm:pb-14">
+    <main class="max-w-7xl xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12 sm:pt-32 sm:pb-16">
         
-        <!-- 평면 스펙 요약 바 (A/B/C/D 타입 선택 탭) -->
-        <div class="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5 mb-10 text-center">
-            <!-- A-Type (선택됨: 골드 색상 강조) -->
-            <button type="button" id="tab-A" onclick="selectFloorType('A')" class="type-tab-btn bg-gold/15 py-2.5 px-3 rounded-lg sm:rounded-xl border-2 border-gold shadow-[0_0_12px_rgba(212,175,55,0.2)] flex flex-col justify-center items-center transition-colors duration-150 cursor-pointer text-center w-full h-16 sm:h-[72px] box-border focus:outline-none">
-                <h3 class="text-sm sm:text-base font-bold text-gold block mb-0.5">A-Type(84.99㎡)</h3>
-                <span class="text-[11px] sm:text-xs font-semibold text-gold/90 block">548세대</span>
-            </button>
-            <!-- B-Type -->
-            <button type="button" id="tab-B" onclick="selectFloorType('B')" class="type-tab-btn bg-black/50 py-2.5 px-3 rounded-lg sm:rounded-xl border-2 border-gray-800/80 hover:border-gray-600 flex flex-col justify-center items-center transition-colors duration-150 cursor-pointer text-center w-full h-16 sm:h-[72px] box-border focus:outline-none">
-                <h3 class="text-sm sm:text-base font-bold text-white block mb-0.5">B-Type(84.98㎡)</h3>
-                <span class="text-[11px] sm:text-xs font-normal text-gray-400 block">388세대</span>
-            </button>
-            <!-- C-Type -->
-            <button type="button" id="tab-C" onclick="selectFloorType('C')" class="type-tab-btn bg-black/50 py-2.5 px-3 rounded-lg sm:rounded-xl border-2 border-gray-800/80 hover:border-gray-600 flex flex-col justify-center items-center transition-colors duration-150 cursor-pointer text-center w-full h-16 sm:h-[72px] box-border focus:outline-none">
-                <h3 class="text-sm sm:text-base font-bold text-white block mb-0.5">C-Type(84.93㎡)</h3>
-                <span class="text-[11px] sm:text-xs font-normal text-gray-400 block">166세대</span>
-            </button>
-            <!-- D-Type -->
-            <button type="button" id="tab-D" onclick="selectFloorType('D')" class="type-tab-btn bg-black/50 py-2.5 px-3 rounded-lg sm:rounded-xl border-2 border-gray-800/80 hover:border-gray-600 flex flex-col justify-center items-center transition-colors duration-150 cursor-pointer text-center w-full h-16 sm:h-[72px] box-border focus:outline-none">
-                <h3 class="text-sm sm:text-base font-bold text-white block mb-0.5">D-Type(84.98㎡)</h3>
-                <span class="text-[11px] sm:text-xs font-normal text-gray-400 block">151세대</span>
-            </button>
-        </div>
-
-        <!-- 평면도 및 사진 디스플레이 영역 (PC/데스크톱: 좌측 492px 도면 안전여백 고정, 우측 와이드 사진 갤러리 확장, 모바일: 단일/스택 배치) -->
-        <div class="grid grid-cols-1 md:grid-cols-[492px_1fr] gap-5 lg:gap-6">
-            <!-- [왼쪽 흰색 영역]: 평면도 이미지 (중앙 정렬) -->
-            <div id="floor-display-box" class="w-full bg-white rounded-2xl h-[460px] sm:h-[550px] border border-gray-200 shadow-xl overflow-hidden flex items-center justify-center p-3 sm:p-5 relative">
-                <div id="plan-view-A" class="floor-plan-view w-full max-w-2xl mx-auto flex items-center justify-center py-1 relative -top-[4px]">
-                    <img src="images/A-Type-Plan03.png?v=20261122_0455" alt="도안수목토 아파트 A-Type 평면도 (84.99㎡)" class="w-full sm:w-auto max-w-[340px] sm:max-w-[610px] max-h-[380px] sm:max-h-[480px] h-auto object-contain mx-auto block drop-shadow-sm scale-[1.235] sm:scale-100 origin-center">
+        <!-- 상단 헤더: 컴팩트 타이틀 & 세그먼트 탭 네비게이션 -->
+        <div class="mb-6 sm:mb-8">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-4">
+                <div>
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold/10 border border-gold/30 text-gold text-xs font-semibold mb-2">
+                        <span>도안수목토 아파트 1,253세대</span>
+                        <span class="text-zinc-500">|</span>
+                        <span>하이엔드 평면 쇼룸</span>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+                        타입별 <span class="text-gradient-gold">평면도 & 세대 갤러리</span>
+                    </h2>
                 </div>
-                <div id="plan-view-B" class="floor-plan-view hidden w-full max-w-2xl mx-auto flex items-center justify-center h-full">
-                    <img src="images/B-Type-Plan03.png" alt="도안수목토 아파트 B-Type 평면도 (84.98㎡)" class="max-w-[520px] sm:max-w-[620px] max-h-[420px] sm:max-h-[490px] w-auto h-full object-contain mx-auto block drop-shadow-sm">
-                </div>
-                <div id="plan-view-C" class="floor-plan-view hidden w-full max-w-2xl mx-auto flex items-center justify-center h-full">
-                    <img src="images/C-Type-Plan03.png?v=20261122_2105" alt="도안수목토 아파트 C-Type 평면도 (84.93㎡)" class="w-full sm:w-[500px] sm:max-w-none max-h-[360px] sm:max-h-[420px] w-auto h-auto object-contain mx-auto block drop-shadow-sm origin-center">
-                </div>
-                <div id="plan-view-D" class="floor-plan-view hidden w-full"></div>
+                <p class="text-xs sm:text-sm text-zinc-400 max-w-md">
+                    원하시는 타입을 선택하시면 좌측에서 상세 평면도를, 우측에서 실제 세대 내부 사진을 고해상도로 확인하실 수 있습니다.
+                </p>
             </div>
 
-            <!-- [오른쪽 흰색 영역]: 세대 및 단지 사진 배치 영역 (모바일 상하 여백 최적화 h-auto, 데스크톱 sm:h-[550px]) -->
-            <div id="floor-photo-box" class="w-full bg-white rounded-2xl h-auto sm:h-[550px] border border-gray-200 shadow-xl overflow-hidden flex items-center justify-center p-2.5 sm:p-5 relative">
-                <!-- A-Type 우측 영역 (차후 사진 이미지 추가 예정 - 빈 흰색 영역) -->
-                <div id="photo-view-A" class="floor-photo-view w-full h-full min-h-[220px] sm:min-h-0"></div>
-                <!-- B-Type 사진 갤러리 (16:9 메인 큰 사진 + 하단 미리보기 썸네일 11개 1행 나열) -->
-                <div id="photo-view-B" class="floor-photo-view hidden w-full h-full flex flex-col justify-center gap-2.5 sm:gap-3">
-                    <!-- 상단: 16:9 비율의 메인 큰 사진 (모바일 손으로 좌/우 밀어서 보기 지원) -->
-                    <div id="bTypeMainPhotoBox" class="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-black/5 shadow-md border border-gray-200 flex items-center justify-center select-none touch-pan-y cursor-grab active:cursor-grabbing">
+            <!-- 세그먼트 탭 (Pill-style Segmented Control) -->
+            <div class="bg-zinc-900/90 border border-zinc-800 p-1.5 rounded-2xl grid grid-cols-2 sm:grid-cols-4 gap-1.5 shadow-xl">
+                <!-- A-Type 탭 -->
+                <button type="button" id="tab-A" onclick="selectFloorType('A')" class="type-tab-btn group relative py-2.5 px-3 rounded-xl transition-all duration-200 cursor-pointer text-center focus:outline-none bg-gold text-black shadow-lg shadow-gold/20 font-bold border border-gold">
+                    <div class="flex items-center justify-center gap-1.5">
+                        <span class="tab-type-label text-sm sm:text-base font-extrabold">A-Type</span>
+                        <span class="tab-size-label text-xs opacity-90">(84.99㎡)</span>
+                    </div>
+                    <span class="tab-count-label text-[11px] block mt-0.5 opacity-80">548세대</span>
+                </button>
+                <!-- B-Type 탭 -->
+                <button type="button" id="tab-B" onclick="selectFloorType('B')" class="type-tab-btn group relative py-2.5 px-3 rounded-xl transition-all duration-200 cursor-pointer text-center focus:outline-none bg-zinc-950/60 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-transparent font-medium">
+                    <div class="flex items-center justify-center gap-1.5">
+                        <span class="tab-type-label text-sm sm:text-base font-bold text-zinc-200 group-hover:text-white">B-Type</span>
+                        <span class="tab-size-label text-xs text-zinc-400">(84.98㎡)</span>
+                    </div>
+                    <span class="tab-count-label text-[11px] block mt-0.5 text-zinc-500">388세대</span>
+                </button>
+                <!-- C-Type 탭 -->
+                <button type="button" id="tab-C" onclick="selectFloorType('C')" class="type-tab-btn group relative py-2.5 px-3 rounded-xl transition-all duration-200 cursor-pointer text-center focus:outline-none bg-zinc-950/60 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-transparent font-medium">
+                    <div class="flex items-center justify-center gap-1.5">
+                        <span class="tab-type-label text-sm sm:text-base font-bold text-zinc-200 group-hover:text-white">C-Type</span>
+                        <span class="tab-size-label text-xs text-zinc-400">(84.93㎡)</span>
+                    </div>
+                    <span class="tab-count-label text-[11px] block mt-0.5 text-zinc-500">166세대</span>
+                </button>
+                <!-- D-Type 탭 -->
+                <button type="button" id="tab-D" onclick="selectFloorType('D')" class="type-tab-btn group relative py-2.5 px-3 rounded-xl transition-all duration-200 cursor-pointer text-center focus:outline-none bg-zinc-950/60 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-transparent font-medium">
+                    <div class="flex items-center justify-center gap-1.5">
+                        <span class="tab-type-label text-sm sm:text-base font-bold text-zinc-200 group-hover:text-white">D-Type</span>
+                        <span class="tab-size-label text-xs text-zinc-400">(84.98㎡)</span>
+                    </div>
+                    <span class="tab-count-label text-[11px] block mt-0.5 text-zinc-500">151세대</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 일체형 2단 스플릿 쇼룸 카드 (좌 38% : 우 62%) -->
+        <!-- ========================================== -->
+        <div class="showroom-split-card w-full bg-[#111318] rounded-2xl sm:rounded-3xl border border-zinc-800/90 overflow-hidden grid grid-cols-1 lg:grid-cols-[38%_62%] shadow-2xl">
+            
+            <!-- [좌측 영역 (약 38%)]: Type별 평면도 & 스펙 요약 패널 (소프트 화이트 배경) -->
+            <div class="bg-[#F8F9FA] text-zinc-900 p-5 sm:p-7 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-zinc-200 relative min-h-[500px] sm:min-h-[580px] lg:min-h-[640px]">
+                
+                <!-- 좌측 상단: 선택된 타입명 & 스펙 뱃지 -->
+                <div>
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-gold inline-block"></span>
+                            <span id="panelTypeTitle" class="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight">A-Type</span>
+                            <span id="panelHouseholdBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-zinc-900 text-gold shadow-sm">548세대</span>
+                        </div>
+                        <button type="button" onclick="openCurrentPlanModal()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-950 text-xs font-semibold transition-colors cursor-pointer border border-zinc-300 shadow-xs" title="도면 크게 확대 보기">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path></svg>
+                            <span>크게 보기</span>
+                        </button>
+                    </div>
+
+                    <!-- 스펙 요약 뱃지 그리드 -->
+                    <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-zinc-200">
+                        <div class="bg-white p-2.5 rounded-xl border border-zinc-200/80 shadow-xs">
+                            <span class="text-[11px] text-zinc-500 block font-medium">전용면적</span>
+                            <span id="panelExclusiveArea" class="text-sm sm:text-base font-extrabold text-zinc-900">84.99㎡</span>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-xl border border-zinc-200/80 shadow-xs">
+                            <span class="text-[11px] text-zinc-500 block font-medium">공급면적 (평형)</span>
+                            <span id="panelSupplyArea" class="text-sm sm:text-base font-extrabold text-zinc-900">112.39㎡ (34평형)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 좌측 중앙: 평면도 이미지 디스플레이 (클릭 시 고해상도 모달 오픈) -->
+                <div class="floor-plan-box my-auto py-3 sm:py-5 flex items-center justify-center relative cursor-zoom-in group" onclick="openCurrentPlanModal()" title="클릭하여 고해상도 도면 확대">
+                    
+                    <!-- A-Type 평면도 -->
+                    <div id="plan-view-A" class="floor-plan-view w-full flex items-center justify-center">
+                        <img src="images/A-Type-Plan03.png?v=20261122_0455" alt="도안수목토 아파트 A-Type 평면도 (84.99㎡)" class="floor-plan-img max-w-full max-h-[340px] sm:max-h-[380px] lg:max-h-[400px] w-auto h-auto object-contain mx-auto block drop-shadow-md">
+                    </div>
+                    <!-- B-Type 평면도 -->
+                    <div id="plan-view-B" class="floor-plan-view hidden w-full flex items-center justify-center">
+                        <img src="images/B-Type-Plan03.png" alt="도안수목토 아파트 B-Type 평면도 (84.98㎡)" class="floor-plan-img max-w-full max-h-[340px] sm:max-h-[380px] lg:max-h-[400px] w-auto h-auto object-contain mx-auto block drop-shadow-md">
+                    </div>
+                    <!-- C-Type 평면도 -->
+                    <div id="plan-view-C" class="floor-plan-view hidden w-full flex items-center justify-center">
+                        <img src="images/C-Type-Plan03.png?v=20261122_2105" alt="도안수목토 아파트 C-Type 평면도 (84.93㎡)" class="floor-plan-img max-w-full max-h-[340px] sm:max-h-[380px] lg:max-h-[400px] w-auto h-auto object-contain mx-auto block drop-shadow-md">
+                    </div>
+                    <!-- D-Type 평면도 (준비 중 안내) -->
+                    <div id="plan-view-D" class="floor-plan-view hidden w-full flex flex-col items-center justify-center py-12 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-zinc-100 border border-zinc-300 flex items-center justify-center text-zinc-400 mb-3 shadow-inner">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <h4 class="text-base font-bold text-zinc-800 mb-1">D-Type 도면 준비 중</h4>
+                        <p class="text-xs text-zinc-500 max-w-xs">고해상도 도면 정비 작업이 진행 중입니다. 유선 문의 시 상세 도면을 전송해 드립니다.</p>
+                    </div>
+
+                    <!-- 호버 시 확대 안내 오버레이 뱃지 -->
+                    <div class="absolute bottom-1 right-2 bg-black/60 backdrop-blur-xs text-white text-[11px] px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"></path></svg>
+                        <span>클릭하여 확대</span>
+                    </div>
+                </div>
+
+                <!-- 좌측 하단: 타입 퀵 네비게이션 버튼 바 -->
+                <div class="pt-3 border-t border-zinc-200">
+                    <div class="flex items-center justify-between gap-2">
+                        <button type="button" id="prevTypeBtn" onclick="navigateType(-1)" class="flex-1 py-2 px-3 rounded-xl bg-white hover:bg-zinc-100 text-zinc-800 text-xs font-bold border border-zinc-300 shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                            <span id="prevTypeLabel">이전 타입 (D)</span>
+                        </button>
+                        <button type="button" id="nextTypeBtn" onclick="navigateType(1)" class="flex-1 py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-gold text-xs font-bold border border-zinc-900 shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                            <span id="nextTypeLabel">다음 타입 (B)</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- [우측 영역 (약 62%)]: 대형 세대 사진 갤러리 (다크 시네마틱 톤) -->
+            <div class="bg-[#0E1015] p-4 sm:p-6 lg:p-7 flex flex-col justify-between relative min-h-[500px] sm:min-h-[580px] lg:min-h-[640px]">
+                
+                <!-- A-Type 우측 영역: 실사진 준비 중 플레이스홀더 (다크 쇼룸 감성) -->
+                <div id="photo-view-A" class="floor-photo-view w-full h-full flex flex-col items-center justify-center text-center p-6 my-auto">
+                    <div class="max-w-md mx-auto py-10 px-6 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 shadow-2xl backdrop-blur-md">
+                        <div class="w-16 h-16 rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center text-gold mx-auto mb-4">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <h4 class="text-xl font-black text-white mb-2">A-Type 세대 실사진 촬영 준비 중</h4>
+                        <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed mb-6">
+                            현재 A-Type(84.99㎡, 548세대) 실사진 촬영 및 고해상도 보정 작업이 진행 중입니다.<br>
+                            단지 내 실물 세대 방문 투어나 매물 상세 확인을 원하시면 언제든 상담을 신청해 주세요.
+                        </p>
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                            <a href="index.html#consulting" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gold hover:bg-gold-dark text-black text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                <span>방문 등록 및 매물 상담 신청</span>
+                            </a>
+                            <a href="tel:042-546-4900" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-colors flex items-center justify-center gap-2">
+                                <span>전화 문의 (042-546-4900)</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- B-Type 사진 갤러리 (대형 16:9 메인 사진 + 글래스모피즘 컨트롤러 + 하단 11개 썸네일 스트립) -->
+                <div id="photo-view-B" class="floor-photo-view hidden w-full h-full flex flex-col justify-between gap-4">
+                    <!-- 상단 메인 사진 뷰어 -->
+                    <div id="bTypeMainPhotoBox" class="relative w-full aspect-[16/9] sm:aspect-[16/9.5] rounded-xl sm:rounded-2xl overflow-hidden bg-black/60 shadow-2xl border border-zinc-800 flex items-center justify-center select-none touch-pan-y cursor-grab active:cursor-grabbing">
                         <img id="bTypeMainPhoto" 
                              src="images/b_type/1_2K.jpg" 
-                             alt="도안수목토 아파트 B-Type 세대 사진" 
+                             alt="도안수목토 아파트 B-Type 세대 실사진" 
                              class="w-full h-full object-cover transition-opacity duration-200 pointer-events-none">
                         
-                        <!-- 좌우 넘김 보조 버튼 (터치 및 클릭) -->
-                        <button type="button" onclick="swipeBTypePhoto(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-xs opacity-70 hover:opacity-100 z-10 focus:outline-none" aria-label="이전 사진">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        <!-- 좌/우 화살표 버튼 (반투명 글래스모피즘) -->
+                        <button type="button" onclick="swipeBTypePhoto(-1)" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/45 hover:bg-black/80 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/20 shadow-xl opacity-80 hover:opacity-100 z-10 focus:outline-none cursor-pointer" aria-label="이전 사진">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
                         </button>
-                        <button type="button" onclick="swipeBTypePhoto(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-xs opacity-70 hover:opacity-100 z-10 focus:outline-none" aria-label="다음 사진">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        <button type="button" onclick="swipeBTypePhoto(1)" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/45 hover:bg-black/80 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/20 shadow-xl opacity-80 hover:opacity-100 z-10 focus:outline-none cursor-pointer" aria-label="다음 사진">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                         </button>
 
+                        <!-- 우측 하단 카운터 알약 뱃지 -->
                         <div id="bTypePhotoBadge" 
-                             class="absolute bottom-2.5 right-2.5 bg-black/70 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-md font-medium border border-white/20 shadow pointer-events-none">
-                            B-Type 세대 사진 (1/11)
+                             class="absolute bottom-3 right-3 bg-black/75 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full font-semibold border border-white/20 shadow-lg pointer-events-none flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-gold inline-block"></span>
+                            <span>B-Type 세대 사진 (1 / 11)</span>
                         </div>
                     </div>
 
-                    <!-- 하단: 미리보기 작은 썸네일 이미지 목록 (1행 11열 가로 나열, 빨간색 테두리) -->
+                    <!-- 하단 썸네일 스트립 (11개 가로 스크롤 대응) -->
                     <div class="w-full">
-                        <div class="grid grid-cols-11 gap-1 sm:gap-1.5" style="grid-template-columns: repeat(11, minmax(0, 1fr));">
-                            <button type="button" onclick="changeBTypePhoto(1)" class="b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-600 ring-2 ring-red-500 shadow-md focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-[1.03]" data-idx="1" title="B-Type 사진 1">
+                        <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sub-custom-scrollbar">
+                            <button type="button" onclick="changeBTypePhoto(1)" class="b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border-2 border-gold ring-2 ring-gold/40 shadow-lg focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-105" data-idx="1" title="B-Type 사진 1">
                                 <img src="images/b_type/1_2K.jpg" alt="B-Type 썸네일 1" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeBTypePhoto(2)" class="b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="2" title="B-Type 사진 2">
+                            <button type="button" onclick="changeBTypePhoto(2)" class="b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="2" title="B-Type 사진 2">
                                 <img src="images/b_type/2_2K.jpg" alt="B-Type 썸네일 2" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeBTypePhoto(3)" class="b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="3" title="B-Type 사진 3">
+                            <button type="button" onclick="changeBTypePhoto(3)" class="b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="3" title="B-Type 사진 3">
                                 <img src="images/b_type/3_2K.jpg" alt="B-Type 썸네일 3" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeBTypePhoto(4)" class="b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="4" title="B-Type 사진 4">
+                            <button type="button" onclick="changeBTypePhoto(4)" class="b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="4" title="B-Type 사진 4">
                                 <img src="images/b_type/4_2K.jpg" alt="B-Type 썸네일 4" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeBTypePhoto(5)" class="b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="5" title="B-Type 사진 5">
+                            <button type="button" onclick="changeBTypePhoto(5)" class="b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="5" title="B-Type 사진 5">
                                 <img src="images/b_type/5_2K.jpg" alt="B-Type 썸네일 5" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeBTypePhoto(6)" class="b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="6" title="B-Type 사진 6">
+                            <button type="button" onclick="changeBTypePhoto(6)" class="b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="6" title="B-Type 사진 6">
                                 <img src="images/b_type/6_2K.jpg" alt="B-Type 썸네일 6" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeBTypePhoto(7)" class="b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="7" title="B-Type 사진 7">
+                            <button type="button" onclick="changeBTypePhoto(7)" class="b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="7" title="B-Type 사진 7">
                                 <img src="images/b_type/7_2K.jpg" alt="B-Type 썸네일 7" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeBTypePhoto(8)" class="b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="8" title="B-Type 사진 8">
+                            <button type="button" onclick="changeBTypePhoto(8)" class="b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="8" title="B-Type 사진 8">
                                 <img src="images/b_type/8_2K.jpg" alt="B-Type 썸네일 8" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeBTypePhoto(9)" class="b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="9" title="B-Type 사진 9">
+                            <button type="button" onclick="changeBTypePhoto(9)" class="b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="9" title="B-Type 사진 9">
                                 <img src="images/b_type/9_2K.jpg" alt="B-Type 썸네일 9" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeBTypePhoto(10)" class="b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="10" title="B-Type 사진 10">
+                            <button type="button" onclick="changeBTypePhoto(10)" class="b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="10" title="B-Type 사진 10">
                                 <img src="images/b_type/10_2K.jpg" alt="B-Type 썸네일 10" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeBTypePhoto(11)" class="b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="11" title="B-Type 사진 11">
+                            <button type="button" onclick="changeBTypePhoto(11)" class="b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="11" title="B-Type 사진 11">
                                 <img src="images/b_type/11_2K.jpg" alt="B-Type 썸네일 11" class="w-full h-full object-cover">
                             </button>
                         </div>
                     </div>
                 </div>
-                <!-- C-Type 사진 갤러리 (16:9 메인 큰 사진 + 하단 미리보기 썸네일 11개 1행 나열) -->
-                <div id="photo-view-C" class="floor-photo-view hidden w-full h-full flex flex-col justify-center gap-2.5 sm:gap-3">
-                    <!-- 상단: 16:9 비율의 메인 큰 사진 (모바일 손으로 좌/우 밀어서 보기 지원) -->
-                    <div id="cTypeMainPhotoBox" class="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-black/5 shadow-md border border-gray-200 flex items-center justify-center select-none touch-pan-y cursor-grab active:cursor-grabbing">
+
+                <!-- C-Type 사진 갤러리 (대형 16:9 메인 사진 + 글래스모피즘 컨트롤러 + 하단 11개 썸네일 스트립) -->
+                <div id="photo-view-C" class="floor-photo-view hidden w-full h-full flex flex-col justify-between gap-4">
+                    <!-- 상단 메인 사진 뷰어 -->
+                    <div id="cTypeMainPhotoBox" class="relative w-full aspect-[16/9] sm:aspect-[16/9.5] rounded-xl sm:rounded-2xl overflow-hidden bg-black/60 shadow-2xl border border-zinc-800 flex items-center justify-center select-none touch-pan-y cursor-grab active:cursor-grabbing">
                         <img id="cTypeMainPhoto" 
                              src="images/c-type/1_2K.jpg" 
-                             alt="도안수목토 아파트 C-Type 세대 사진" 
+                             alt="도안수목토 아파트 C-Type 세대 실사진" 
                              class="w-full h-full object-cover transition-opacity duration-200 pointer-events-none">
                         
-                        <!-- 좌우 넘김 보조 버튼 (터치 및 클릭) -->
-                        <button type="button" onclick="swipeCTypePhoto(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-xs opacity-70 hover:opacity-100 z-10 focus:outline-none" aria-label="이전 사진">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        <!-- 좌/우 화살표 버튼 (반투명 글래스모피즘) -->
+                        <button type="button" onclick="swipeCTypePhoto(-1)" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/45 hover:bg-black/80 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/20 shadow-xl opacity-80 hover:opacity-100 z-10 focus:outline-none cursor-pointer" aria-label="이전 사진">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
                         </button>
-                        <button type="button" onclick="swipeCTypePhoto(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all backdrop-blur-xs opacity-70 hover:opacity-100 z-10 focus:outline-none" aria-label="다음 사진">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        <button type="button" onclick="swipeCTypePhoto(1)" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/45 hover:bg-black/80 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/20 shadow-xl opacity-80 hover:opacity-100 z-10 focus:outline-none cursor-pointer" aria-label="다음 사진">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                         </button>
 
+                        <!-- 우측 하단 카운터 알약 뱃지 -->
                         <div id="cTypePhotoBadge" 
-                             class="absolute bottom-2.5 right-2.5 bg-black/70 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-md font-medium border border-white/20 shadow pointer-events-none">
-                            C-Type 세대 사진 (1/11)
+                             class="absolute bottom-3 right-3 bg-black/75 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full font-semibold border border-white/20 shadow-lg pointer-events-none flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-gold inline-block"></span>
+                            <span>C-Type 세대 사진 (1 / 11)</span>
                         </div>
                     </div>
 
-                    <!-- 하단: 미리보기 작은 썸네일 이미지 목록 (1행 11열 가로 나열, 빨간색 테두리) -->
+                    <!-- 하단 썸네일 스트립 (11개 가로 스크롤 대응) -->
                     <div class="w-full">
-                        <div class="grid grid-cols-11 gap-1 sm:gap-1.5" style="grid-template-columns: repeat(11, minmax(0, 1fr));">
-                            <button type="button" onclick="changeCTypePhoto(1)" class="c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-600 ring-2 ring-red-500 shadow-md focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-[1.03]" data-idx="1" title="C-Type 사진 1">
+                        <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sub-custom-scrollbar">
+                            <button type="button" onclick="changeCTypePhoto(1)" class="c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border-2 border-gold ring-2 ring-gold/40 shadow-lg focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-105" data-idx="1" title="C-Type 사진 1">
                                 <img src="images/c-type/1_2K.jpg" alt="C-Type 썸네일 1" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeCTypePhoto(2)" class="c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="2" title="C-Type 사진 2">
+                            <button type="button" onclick="changeCTypePhoto(2)" class="c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="2" title="C-Type 사진 2">
                                 <img src="images/c-type/2_2K.jpg" alt="C-Type 썸네일 2" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeCTypePhoto(3)" class="c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="3" title="C-Type 사진 3">
+                            <button type="button" onclick="changeCTypePhoto(3)" class="c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="3" title="C-Type 사진 3">
                                 <img src="images/c-type/3_2K.jpg" alt="C-Type 썸네일 3" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeCTypePhoto(4)" class="c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="4" title="C-Type 사진 4">
+                            <button type="button" onclick="changeCTypePhoto(4)" class="c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="4" title="C-Type 사진 4">
                                 <img src="images/c-type/4_2K.jpg" alt="C-Type 썸네일 4" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeCTypePhoto(5)" class="c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="5" title="C-Type 사진 5">
+                            <button type="button" onclick="changeCTypePhoto(5)" class="c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="5" title="C-Type 사진 5">
                                 <img src="images/c-type/5_2K.jpg" alt="C-Type 썸네일 5" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeCTypePhoto(6)" class="c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="6" title="C-Type 사진 6">
+                            <button type="button" onclick="changeCTypePhoto(6)" class="c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="6" title="C-Type 사진 6">
                                 <img src="images/c-type/6_2K.jpg" alt="C-Type 썸네일 6" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeCTypePhoto(7)" class="c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="7" title="C-Type 사진 7">
+                            <button type="button" onclick="changeCTypePhoto(7)" class="c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="7" title="C-Type 사진 7">
                                 <img src="images/c-type/7_2K.jpg" alt="C-Type 썸네일 7" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeCTypePhoto(8)" class="c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="8" title="C-Type 사진 8">
+                            <button type="button" onclick="changeCTypePhoto(8)" class="c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="8" title="C-Type 사진 8">
                                 <img src="images/c-type/8_2K.jpg" alt="C-Type 썸네일 8" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeCTypePhoto(9)" class="c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="9" title="C-Type 사진 9">
+                            <button type="button" onclick="changeCTypePhoto(9)" class="c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="9" title="C-Type 사진 9">
                                 <img src="images/c-type/9_2K.jpg" alt="C-Type 썸네일 9" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeCTypePhoto(10)" class="c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="10" title="C-Type 사진 10">
+                            <button type="button" onclick="changeCTypePhoto(10)" class="c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="10" title="C-Type 사진 10">
                                 <img src="images/c-type/10_2K.jpg" alt="C-Type 썸네일 10" class="w-full h-full object-cover">
                             </button>
-                            <button type="button" onclick="changeCTypePhoto(11)" class="c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer group opacity-70 hover:opacity-100 hover:scale-[1.02]" data-idx="11" title="C-Type 사진 11">
+                            <button type="button" onclick="changeCTypePhoto(11)" class="c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90" data-idx="11" title="C-Type 사진 11">
                                 <img src="images/c-type/11_2K.jpg" alt="C-Type 썸네일 11" class="w-full h-full object-cover">
                             </button>
                         </div>
                     </div>
                 </div>
-                <!-- D-Type 우측 영역 (차후 사진 이미지 추가 예정 - 빈 흰색 영역) -->
-                <div id="photo-view-D" class="floor-photo-view hidden w-full h-full min-h-[220px] sm:min-h-0"></div>
+
+                <!-- D-Type 우측 영역: 실사진 준비 중 플레이스홀더 (다크 쇼룸 감성) -->
+                <div id="photo-view-D" class="floor-photo-view hidden w-full h-full flex flex-col items-center justify-center text-center p-6 my-auto">
+                    <div class="max-w-md mx-auto py-10 px-6 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 shadow-2xl backdrop-blur-md">
+                        <div class="w-16 h-16 rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center text-gold mx-auto mb-4">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <h4 class="text-xl font-black text-white mb-2">D-Type 세대 실사진 준비 중</h4>
+                        <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed mb-6">
+                            현재 D-Type(84.98㎡, 151세대) 실사진 촬영 및 고해상도 보정 작업이 진행 중입니다.<br>
+                            단지 내 실물 세대 방문 투어나 매물 상세 확인을 원하시면 언제든 상담을 신청해 주세요.
+                        </p>
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                            <a href="index.html#consulting" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gold hover:bg-gold-dark text-black text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                <span>방문 등록 및 매물 상담 신청</span>
+                            </a>
+                            <a href="tel:042-546-4900" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-colors flex items-center justify-center gap-2">
+                                <span>전화 문의 (042-546-4900)</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>
+
+    <!-- ========================================== -->
+    <!-- [Modal] 평면도 고해상도 확대 라이트박스 모달  -->
+    <!-- ========================================== -->
+    <div id="floorPlanModal" class="hidden fixed inset-0 z-[250] bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 select-none" onclick="closeFloorPlanModal()">
+        <div class="relative bg-white rounded-2xl sm:rounded-3xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-zinc-200" onclick="event.stopPropagation()">
+            <!-- 모달 헤더 -->
+            <div class="px-5 py-3.5 bg-zinc-900 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-gold"></span>
+                    <h3 id="modalPlanTitle" class="text-base sm:text-lg font-black tracking-tight">도안수목토 아파트 A-Type 평면도</h3>
+                    <span id="modalPlanSpec" class="text-xs bg-gold/20 text-gold border border-gold/40 px-2 py-0.5 rounded font-semibold hidden sm:inline-block">전용 84.99㎡</span>
+                </div>
+                <button type="button" onclick="closeFloorPlanModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer" aria-label="닫기">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <!-- 모달 이미지 본문 -->
+            <div class="p-4 sm:p-8 flex items-center justify-center bg-white overflow-auto max-h-[calc(92vh-60px)]">
+                <img id="modalPlanImg" src="images/A-Type-Plan03.png?v=20261122_0455" alt="도안수목토 평면도 확대" class="max-w-full max-h-[80vh] w-auto h-auto object-contain drop-shadow-md">
+            </div>
+        </div>
+    </div>
 
     <!-- ========================================== -->
     <!-- 4. Footer                                  -->
@@ -587,35 +775,94 @@
         </div>
     </footer>
     <!-- ========================================== -->
-    <!-- 타입 선택 동적 인터랙션 스크립트            -->
+    <!-- 하이엔드 쇼룸 동적 인터랙션 & 보안 스크립트    -->
     <!-- ========================================== -->
     <script>
+        // 타입별 상세 스펙 및 도면 메타데이터
+        const floorTypeData = {
+            'A': {
+                name: 'A-Type',
+                exclusive: '84.99㎡',
+                supply: '112.39㎡ (34평형)',
+                households: '548세대',
+                planImg: 'images/A-Type-Plan03.png?v=20261122_0455',
+                hasPlan: true,
+                prev: 'D',
+                next: 'B'
+            },
+            'B': {
+                name: 'B-Type',
+                exclusive: '84.98㎡',
+                supply: '112.38㎡ (34평형)',
+                households: '388세대',
+                planImg: 'images/B-Type-Plan03.png',
+                hasPlan: true,
+                prev: 'A',
+                next: 'C'
+            },
+            'C': {
+                name: 'C-Type',
+                exclusive: '84.93㎡',
+                supply: '112.32㎡ (34평형)',
+                households: '166세대',
+                planImg: 'images/C-Type-Plan03.png?v=20261122_2105',
+                hasPlan: true,
+                prev: 'B',
+                next: 'D'
+            },
+            'D': {
+                name: 'D-Type',
+                exclusive: '84.98㎡',
+                supply: '112.38㎡ (34평형)',
+                households: '151세대',
+                planImg: '',
+                hasPlan: false,
+                prev: 'C',
+                next: 'A'
+            }
+        };
+
+        const typeKeysOrder = ['A', 'B', 'C', 'D'];
+        let currentSelectedType = 'A';
+
+        // 1. 타입 선택 제어 함수
         function selectFloorType(typeKey) {
-            const types = ['A', 'B', 'C', 'D'];
-            types.forEach(function(t) {
+            if (!floorTypeData[typeKey]) return;
+            currentSelectedType = typeKey;
+            const data = floorTypeData[typeKey];
+
+            // 상단 세그먼트 탭 버튼 스타일 갱신
+            typeKeysOrder.forEach(function(t) {
                 const btn = document.getElementById('tab-' + t);
                 if (!btn) return;
-                const title = btn.querySelector('h3');
-                const count = btn.querySelector('span');
+
+                const typeLabel = btn.querySelector('.tab-type-label');
+                const sizeLabel = btn.querySelector('.tab-size-label');
+                const countLabel = btn.querySelector('.tab-count-label');
+
                 if (t === typeKey) {
-                    btn.className = 'type-tab-btn bg-gold/15 py-2.5 px-3 rounded-lg sm:rounded-xl border-2 border-gold shadow-[0_0_12px_rgba(212,175,55,0.2)] flex flex-col justify-center items-center transition-colors duration-150 cursor-pointer text-center w-full h-16 sm:h-[72px] box-border focus:outline-none';
-                    if (title) title.className = 'text-sm sm:text-base font-bold text-gold block mb-0.5';
-                    if (count) count.className = 'text-[11px] sm:text-xs font-semibold text-gold/90 block';
+                    btn.className = 'type-tab-btn group relative py-2.5 px-3 rounded-xl transition-all duration-200 cursor-pointer text-center focus:outline-none bg-gold text-black shadow-lg shadow-gold/20 font-bold border border-gold';
+                    if (typeLabel) typeLabel.className = 'tab-type-label text-sm sm:text-base font-extrabold text-black';
+                    if (sizeLabel) sizeLabel.className = 'tab-size-label text-xs text-black/80 font-bold';
+                    if (countLabel) countLabel.className = 'tab-count-label text-[11px] block mt-0.5 text-black/90 font-semibold';
                 } else {
-                    btn.className = 'type-tab-btn bg-black/50 py-2.5 px-3 rounded-lg sm:rounded-xl border-2 border-gray-800/80 hover:border-gray-600 flex flex-col justify-center items-center transition-colors duration-150 cursor-pointer text-center w-full h-16 sm:h-[72px] box-border focus:outline-none';
-                    if (title) title.className = 'text-sm sm:text-base font-bold text-white block mb-0.5';
-                    if (count) count.className = 'text-[11px] sm:text-xs font-normal text-gray-400 block';
+                    btn.className = 'type-tab-btn group relative py-2.5 px-3 rounded-xl transition-all duration-200 cursor-pointer text-center focus:outline-none bg-zinc-950/60 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-transparent font-medium';
+                    if (typeLabel) typeLabel.className = 'tab-type-label text-sm sm:text-base font-bold text-zinc-200 group-hover:text-white';
+                    if (sizeLabel) sizeLabel.className = 'tab-size-label text-xs text-zinc-400';
+                    if (countLabel) countLabel.className = 'tab-count-label text-[11px] block mt-0.5 text-zinc-500';
                 }
 
-                const view = document.getElementById('plan-view-' + t);
-                if (view) {
+                // 좌측 평면도 뷰 전환
+                const planView = document.getElementById('plan-view-' + t);
+                if (planView) {
                     if (t === typeKey) {
-                        view.classList.remove('hidden');
+                        planView.classList.remove('hidden');
                     } else {
-                        view.classList.add('hidden');
+                        planView.classList.add('hidden');
                     }
                 }
 
+                // 우측 세대 사진 뷰 전환
                 const photoView = document.getElementById('photo-view-' + t);
                 if (photoView) {
                     if (t === typeKey) {
@@ -625,13 +872,73 @@
                     }
                 }
             });
+
+            // 좌측 헤더 및 스펙 패널 텍스트 업데이트
+            const titleEl = document.getElementById('panelTypeTitle');
+            const householdEl = document.getElementById('panelHouseholdBadge');
+            const exclusiveEl = document.getElementById('panelExclusiveArea');
+            const supplyEl = document.getElementById('panelSupplyArea');
+            const prevLabel = document.getElementById('prevTypeLabel');
+            const nextLabel = document.getElementById('nextTypeLabel');
+
+            if (titleEl) titleEl.textContent = data.name;
+            if (householdEl) householdEl.textContent = data.households;
+            if (exclusiveEl) exclusiveEl.textContent = data.exclusive;
+            if (supplyEl) supplyEl.textContent = data.supply;
+            if (prevLabel) prevLabel.textContent = '이전 타입 (' + data.prev + ')';
+            if (nextLabel) nextLabel.textContent = '다음 타입 (' + data.next + ')';
+
+            // URL 쿼리/해시 동기화
+            try {
+                if (window.history && window.history.replaceState) {
+                    const newUrl = window.location.pathname + '?type=' + typeKey;
+                    window.history.replaceState({ type: typeKey }, '', newUrl);
+                }
+            } catch (err) {}
         }
 
-        // B-Type 현재 사진 인덱스 및 전체 수 관리
+        // 2. 퀵 네비게이션 순환 전환 함수
+        function navigateType(direction) {
+            const currentIdx = typeKeysOrder.indexOf(currentSelectedType);
+            let nextIdx = (currentIdx + direction + typeKeysOrder.length) % typeKeysOrder.length;
+            selectFloorType(typeKeysOrder[nextIdx]);
+        }
+
+        // 3. 평면도 고해상도 확대 모달 열기/닫기
+        function openCurrentPlanModal() {
+            const data = floorTypeData[currentSelectedType];
+            if (!data || !data.hasPlan || !data.planImg) {
+                alert(currentSelectedType + '-Type 평면도는 정비 중입니다. 유선 문의 시 신속히 안내해 드리겠습니다.');
+                return;
+            }
+
+            const modal = document.getElementById('floorPlanModal');
+            const modalTitle = document.getElementById('modalPlanTitle');
+            const modalSpec = document.getElementById('modalPlanSpec');
+            const modalImg = document.getElementById('modalPlanImg');
+
+            if (modalTitle) modalTitle.textContent = '도안수목토 아파트 ' + data.name + ' 평면도';
+            if (modalSpec) modalSpec.textContent = '전용 ' + data.exclusive + ' / ' + data.supply;
+            if (modalImg) modalImg.src = data.planImg;
+
+            if (modal) {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeFloorPlanModal() {
+            const modal = document.getElementById('floorPlanModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // 4. B-Type 사진 갤러리 제어
         let currentBTypeIdx = 1;
         const totalBTypePhotos = 11;
 
-        // B-Type 사진 갤러리 전환 함수
         function changeBTypePhoto(idx) {
             currentBTypeIdx = idx;
             const mainImg = document.getElementById('bTypeMainPhoto');
@@ -640,20 +947,19 @@
                 mainImg.src = 'images/b_type/' + idx + '_2K.jpg';
             }
             if (badge) {
-                badge.textContent = 'B-Type 세대 사진 (' + idx + '/11)';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-gold inline-block"></span><span>B-Type 세대 사진 (' + idx + ' / 11)</span>';
             }
             const thumbs = document.querySelectorAll('.b-type-thumb');
             thumbs.forEach(function(btn) {
                 const btnIdx = parseInt(btn.getAttribute('data-idx'));
                 if (btnIdx === idx) {
-                    btn.className = 'b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-600 ring-2 ring-red-500 shadow-md focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-[1.03]';
+                    btn.className = 'b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border-2 border-gold ring-2 ring-gold/40 shadow-lg focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-105';
                 } else {
-                    btn.className = 'b-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-70 hover:opacity-100 hover:scale-[1.02]';
+                    btn.className = 'b-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90';
                 }
             });
         }
 
-        // 이전/다음 사진 넘김 함수
         function swipeBTypePhoto(dir) {
             let target = currentBTypeIdx + dir;
             if (target > totalBTypePhotos) target = 1;
@@ -661,14 +967,10 @@
             changeBTypePhoto(target);
         }
 
-        // 모바일 손으로 사진 좌/우 밀어서 보기 (터치 스와이프 제스처 이벤트 리스너)
         function initBTypePhotoSwipe() {
             const container = document.getElementById('bTypeMainPhotoBox');
             if (!container) return;
-
-            let startX = 0;
-            let startY = 0;
-            let isSwiping = false;
+            let startX = 0, startY = 0, isSwiping = false;
 
             container.addEventListener('touchstart', function(e) {
                 if (e.touches.length === 1) {
@@ -681,30 +983,20 @@
             container.addEventListener('touchend', function(e) {
                 if (!isSwiping || e.changedTouches.length === 0) return;
                 isSwiping = false;
+                const diffX = e.changedTouches[0].clientX - startX;
+                const diffY = e.changedTouches[0].clientY - startY;
 
-                const endX = e.changedTouches[0].clientX;
-                const endY = e.changedTouches[0].clientY;
-                const diffX = endX - startX;
-                const diffY = endY - startY;
-
-                // 좌우 수평 스와이프 판단 (최소 30px 이동 및 수평 이동폭이 수직 이동폭보다 클 때)
                 if (Math.abs(diffX) > 30 && Math.abs(diffX) > Math.abs(diffY)) {
-                    if (diffX < 0) {
-                        // 손으로 왼쪽으로 밂 -> 다음 사진으로 전환
-                        swipeBTypePhoto(1);
-                    } else {
-                        // 손으로 오른쪽으로 밂 -> 이전 사진으로 전환
-                        swipeBTypePhoto(-1);
-                    }
+                    if (diffX < 0) swipeBTypePhoto(1);
+                    else swipeBTypePhoto(-1);
                 }
             }, { passive: true });
         }
 
-        // C-Type 현재 사진 인덱스 및 전체 수 관리
+        // 5. C-Type 사진 갤러리 제어
         let currentCTypeIdx = 1;
         const totalCTypePhotos = 11;
 
-        // C-Type 사진 갤러리 전환 함수
         function changeCTypePhoto(idx) {
             currentCTypeIdx = idx;
             const mainImg = document.getElementById('cTypeMainPhoto');
@@ -713,20 +1005,19 @@
                 mainImg.src = 'images/c-type/' + idx + '_2K.jpg';
             }
             if (badge) {
-                badge.textContent = 'C-Type 세대 사진 (' + idx + '/11)';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-gold inline-block"></span><span>C-Type 세대 사진 (' + idx + ' / 11)</span>';
             }
             const thumbs = document.querySelectorAll('.c-type-thumb');
             thumbs.forEach(function(btn) {
                 const btnIdx = parseInt(btn.getAttribute('data-idx'));
                 if (btnIdx === idx) {
-                    btn.className = 'c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-600 ring-2 ring-red-500 shadow-md focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-[1.03]';
+                    btn.className = 'c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border-2 border-gold ring-2 ring-gold/40 shadow-lg focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-105';
                 } else {
-                    btn.className = 'c-type-thumb relative aspect-[16/9] rounded-md sm:rounded-lg overflow-hidden border-2 border-red-400 hover:border-red-600 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-70 hover:opacity-100 hover:scale-[1.02]';
+                    btn.className = 'c-type-thumb shrink-0 w-16 sm:w-20 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-gold/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90';
                 }
             });
         }
 
-        // C-Type 이전/다음 사진 넘김 함수
         function swipeCTypePhoto(dir) {
             let target = currentCTypeIdx + dir;
             if (target > totalCTypePhotos) target = 1;
@@ -734,14 +1025,10 @@
             changeCTypePhoto(target);
         }
 
-        // C-Type 모바일 손으로 사진 좌/우 밀어서 보기 (터치 스와이프 제스처 이벤트 리스너)
         function initCTypePhotoSwipe() {
             const container = document.getElementById('cTypeMainPhotoBox');
             if (!container) return;
-
-            let startX = 0;
-            let startY = 0;
-            let isSwiping = false;
+            let startX = 0, startY = 0, isSwiping = false;
 
             container.addEventListener('touchstart', function(e) {
                 if (e.touches.length === 1) {
@@ -754,26 +1041,17 @@
             container.addEventListener('touchend', function(e) {
                 if (!isSwiping || e.changedTouches.length === 0) return;
                 isSwiping = false;
+                const diffX = e.changedTouches[0].clientX - startX;
+                const diffY = e.changedTouches[0].clientY - startY;
 
-                const endX = e.changedTouches[0].clientX;
-                const endY = e.changedTouches[0].clientY;
-                const diffX = endX - startX;
-                const diffY = endY - startY;
-
-                // 좌우 수평 스와이프 판단 (최소 30px 이동 및 수평 이동폭이 수직 이동폭보다 클 때)
                 if (Math.abs(diffX) > 30 && Math.abs(diffX) > Math.abs(diffY)) {
-                    if (diffX < 0) {
-                        // 손으로 왼쪽으로 밂 -> 다음 사진으로 전환
-                        swipeCTypePhoto(1);
-                    } else {
-                        // 손으로 오른쪽으로 밂 -> 이전 사진으로 전환
-                        swipeCTypePhoto(-1);
-                    }
+                    if (diffX < 0) swipeCTypePhoto(1);
+                    else swipeCTypePhoto(-1);
                 }
             }, { passive: true });
         }
 
-        // URL 파라미터(?type=A/B/C/D) 또는 해시(#A/B/C/D) 분석 후 해당 타입 탭 자동 선택
+        // 6. URL 파라미터(?type=A/B/C/D) 또는 해시 분석
         function checkUrlFloorType() {
             try {
                 const params = new URLSearchParams(window.location.search);
@@ -784,24 +1062,52 @@
                     else if (t.includes('C')) selectFloorType('C');
                     else if (t.includes('B')) selectFloorType('B');
                     else if (t.includes('A')) selectFloorType('A');
+                } else {
+                    selectFloorType('A');
                 }
             } catch (e) {
-                console.error(e);
+                selectFloorType('A');
             }
         }
 
+        // 7. 이미지 도용 및 복사 방지 이벤트 리스너 (input/textarea 예외 처리)
+        function initImageProtection() {
+            // 마우스 우클릭 방지
+            document.addEventListener('contextmenu', function(e) {
+                if (e.target.closest('input, textarea, select')) return;
+                e.preventDefault();
+                return false;
+            });
+
+            // 단축키 복사/저장/소스보기 방지 (Ctrl+C, Ctrl+S, Ctrl+U, Ctrl+P)
+            document.addEventListener('keydown', function(e) {
+                if (e.target.closest('input, textarea, select')) return;
+                if (e.ctrlKey || e.metaKey) {
+                    const key = e.key.toLowerCase();
+                    if (key === 'c' || key === 's' || key === 'u' || key === 'p') {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+        }
+
+        // 초기화 실행
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
                 initBTypePhotoSwipe();
                 initCTypePhotoSwipe();
                 checkUrlFloorType();
+                initImageProtection();
             });
         } else {
             initBTypePhotoSwipe();
             initCTypePhotoSwipe();
             checkUrlFloorType();
+            initImageProtection();
         }
 
+        // 외부 전달 QR 모달 및 분양 정보 모달
         function openQrModal() {
             const m = document.getElementById('qrModal');
             if (m) {
@@ -847,8 +1153,11 @@
                 prompt('웹사이트 주소를 복사하세요:', url);
             }
         }
+
+        // 공통 ESC 키 모달 닫기
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
+                closeFloorPlanModal();
                 closeQrModal();
                 closeSubscriptionModal();
             }
