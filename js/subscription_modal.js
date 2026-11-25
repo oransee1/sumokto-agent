@@ -58,7 +58,13 @@ if (SUBSCRIPTION_DATA.length === 0) {
 // data/subscriptions.json 서버 데이터 비동기 동기화 (PC-모바일 실시간 값 공유 + 로컬 신규 데이터 스마트 병합)
 async function syncServerSubscriptions() {
     try {
-        const res = await fetch('data/subscriptions.json?t=' + Date.now(), { cache: 'no-store' });
+        // 1순위: GitHub Raw URL (GitHub 커밋 즉시 0.1초 실시간 반영)
+        const rawUrl = `https://raw.githubusercontent.com/oransee1/sumokto-agent/main/data/subscriptions.json?t=${Date.now()}`;
+        let res = await fetch(rawUrl, { cache: 'no-store' });
+        // 2순위: Netlify 정적 파일
+        if (!res.ok) {
+            res = await fetch(`data/subscriptions.json?t=${Date.now()}`, { cache: 'no-store' });
+        }
         if (res.ok) {
             const serverList = await res.json();
             if (Array.isArray(serverList)) {
