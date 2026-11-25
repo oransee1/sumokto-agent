@@ -1,0 +1,35 @@
+# Environment variables (보안 민감 정보)
+.env
+.env.local
+.env.*.local
+
+# Node.js dependencies
+node_modules/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# IDE & Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Scratch & temporary files
+scratch/
+scratch_*.jpg

@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/send-kakao",
+      "destination": "/api/send-kakao.js"
+    },
+    {
+      "source": "/api/kakao-callback",
+      "destination": "/api/kakao-callback.js"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/$1"
+    }
+  ]
+}

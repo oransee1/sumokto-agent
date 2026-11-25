@@ -1,0 +1,2653 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 모바일 강력 캐시 방지 메타태그 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>지도로 매물 보기 | 도안수목토 재벌 공인중개사사무소</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo01.png">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#D4AF37',
+                        'gold-light': '#F3E5AB',
+                        'gold-dark': '#AA820A',
+                        'dark-bg': '#121212',
+                        'dark-card': '#1E1E1E',
+                        'dark-border': '#2E2E2E',
+                        'carrot': '#FF6F0F',
+                        'carrot-dark': '#E85A00',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Pretendard 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+    
+    <!-- 카카오맵 API SDK (services, clusterer 라이브러리 포함) -->
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=b5ebd7f9f5b32ed4dd1b9f5605c956ab&libraries=services,clusterer"></script>
+    
+    <style>
+        body {
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* ================================================= */
+        /* 일반지도(ROADMAP) 모드일 때만 타일 레이어에 다크모드 필터 적용 */
+        /* (위성사진 HYBRID 전환 시 필터 자동 해제하여 실제 위성 컬러 보존) */
+        /* ================================================= */
+        #map.dark-map-tiles div[style*="z-index: 0"] img,
+        #map.dark-map-tiles div[style*="z-index: 1"] img {
+            filter: invert(90%) hue-rotate(180deg) brightness(92%) contrast(90%) !important;
+            -webkit-filter: invert(90%) hue-rotate(180deg) brightness(92%) contrast(90%) !important;
+        }
+
+        /* 마커 및 커스텀 오버레이는 원색 100% 보존 */
+        .custom-price-marker,
+        .custom-cluster,
+        .custom-overlay,
+        .cluster-node {
+            filter: none !important;
+            -webkit-filter: none !important;
+        }
+
+        /* 당근 스타일 깜빡이는 레이더 포인트 애니메이션 */
+        .radar-pulse-point {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .radar-wave-1 {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background-color: rgba(255, 111, 15, 0.45);
+            animation: radarWave 1.8s infinite cubic-bezier(0, 0.2, 0.8, 1);
+        }
+        .radar-wave-2 {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid #FF6F0F;
+            animation: radarRing 1.8s infinite 0.6s cubic-bezier(0, 0.2, 0.8, 1);
+            opacity: 0;
+        }
+        .radar-center-dot {
+            position: relative;
+            width: 15px;
+            height: 15px;
+            background-color: #FF6F0F;
+            border: 2.5px solid #FFFFFF;
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(255, 111, 15, 0.95), 0 2px 8px rgba(0, 0, 0, 0.6);
+            animation: dotBlink 0.9s infinite alternate ease-in-out;
+        }
+        @keyframes radarWave {
+            0% { transform: scale(0.3); opacity: 1; }
+            100% { transform: scale(2.4); opacity: 0; }
+        }
+        @keyframes radarRing {
+            0% { transform: scale(0.4); opacity: 0.9; }
+            100% { transform: scale(2.6); opacity: 0; }
+        }
+        @keyframes dotBlink {
+            0% { transform: scale(0.9); filter: brightness(0.95); }
+            100% { transform: scale(1.2); filter: brightness(1.3); }
+        }
+
+        /* ================================================= */
+        /* 분양 정보 전용 파란색(Blue) 레이더 펄스 & 마커 스타일  */
+        /* ================================================= */
+        .blue-radar-pulse-point {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .blue-radar-wave-1 {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background-color: rgba(37, 99, 235, 0.45);
+            animation: blueRadarWave 1.8s infinite cubic-bezier(0, 0.2, 0.8, 1);
+        }
+        .blue-radar-wave-2 {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid #2563EB;
+            animation: blueRadarRing 1.8s infinite 0.6s cubic-bezier(0, 0.2, 0.8, 1);
+            opacity: 0;
+        }
+        .blue-center-dot {
+            position: relative;
+            width: 17px;
+            height: 17px;
+            background-color: #2563EB;
+            border: 2.5px solid #FFFFFF;
+            border-radius: 50%;
+            box-shadow: 0 0 16px rgba(37, 99, 235, 0.95), 0 2px 8px rgba(0, 0, 0, 0.7);
+            animation: blueDotBlink 0.9s infinite alternate ease-in-out;
+        }
+        @keyframes blueRadarWave {
+            0% { transform: scale(0.3); opacity: 1; }
+            100% { transform: scale(2.4); opacity: 0; }
+        }
+        @keyframes blueRadarRing {
+            0% { transform: scale(0.4); opacity: 0.9; }
+            100% { transform: scale(2.6); opacity: 0; }
+        }
+        @keyframes blueDotBlink {
+            0% { transform: scale(0.9); filter: brightness(0.95); }
+            100% { transform: scale(1.2); filter: brightness(1.3); }
+        }
+
+        /* 커스텀 스크롤바 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #18181b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #FF6F0F;
+        }
+
+        /* 가격 마커 애니메이션 */
+        .price-badge-pulse {
+            animation: badgePulse 2s infinite;
+        }
+        @keyframes badgePulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 111, 15, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(255, 111, 15, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 111, 15, 0); }
+        }
+
+        /* Gold Gradient Text (index.html과 동일) */
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+
+        /* 모바일 바텀시트 트랜지션 & 상태 */
+        .bottom-sheet {
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bottom-sheet-peek {
+            transform: translateY(calc(100% - 195px)) !important;
+        }
+        .bottom-sheet-expanded {
+            transform: translateY(0%) !important;
+        }
+        .bottom-sheet-collapsed {
+            transform: translateY(100%) !important;
+        }
+
+        /* 수평 스크롤바 완전 삭제 및 상단 메뉴 1줄 고정 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+            overflow-x: hidden !important;
+        }
+    </style>
+</head>
+<body class="bg-dark-bg text-white h-screen flex flex-col select-none">
+
+    <!-- =================================================== -->
+    <!-- 1. 상단 글로벌 네비게이션 & 필터 바                   -->
+    <!-- =================================================== -->
+    <header class="h-16 md:h-[68px] bg-zinc-950/95 border-b border-dark-border px-3 sm:px-5 flex items-center justify-between shrink-0 z-40 backdrop-blur-md">
+        <!-- 좌측: 브랜드 로고 및 홈 링크 (index.html 좌측 상단 디자인 그대로 적용) -->
+        <div class="flex items-center gap-3 shrink-0">
+            <a href="index.html" class="flex items-center group cursor-pointer" title="메인 페이지로 이동">
+                <img src="logo01.png" alt="재벌부동산 로고" class="w-8 h-8 sm:w-10 sm:h-10 object-contain mr-2.5 filter drop-shadow-[0_0_8px_rgba(212,175,55,0.4)] group-hover:scale-105 transition-transform duration-300">
+                <div class="flex flex-col">
+                    <div class="flex items-center tracking-tight font-bold text-xs sm:text-base lg:text-lg whitespace-nowrap">
+                        <span class="text-gradient-gold">도안수목토</span>
+                        <span class="text-white font-black text-sm sm:text-lg lg:text-xl mx-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">재벌</span>
+                        <span class="text-gradient-gold">공인중개사사무소</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] sm:text-[10px] text-white tracking-wider font-normal">Chebol Land Agent</span>
+                    </div>
+                </div>
+            </a>
+            <div class="h-6 w-px bg-zinc-800 hidden xl:block ml-1"></div>
+            <a href="index.html" class="hidden xl:flex items-center gap-1 text-xs text-gray-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                홈으로
+            </a>
+        </div>
+
+        <!-- 중앙: 상단 메뉴 ('매물 보기 | 분양 정보 보기' 모바일/PC 공통 표출) -->
+        <div class="flex-1 min-w-0 mx-1.5 sm:mx-3 flex items-center justify-end md:justify-start gap-1.5 sm:gap-2 flex-nowrap">
+            <!-- [매물 보기 | 분양 정보 보기] 스위치 버튼 (모바일에서는 이것만 깔끔하게 노출) -->
+            <div class="flex items-center bg-zinc-900/90 p-1 rounded-full border border-zinc-700/80 shrink-0 shadow-sm mr-0.5">
+                <button type="button" id="switchPropBtn" onclick="switchViewMode('PROPERTY')" class="px-2.5 sm:px-3 py-1 text-xs font-bold rounded-full transition-all flex items-center gap-1 bg-carrot text-white shadow-md cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>매물 보기</span>
+                </button>
+                <button type="button" id="switchSubBtn" onclick="switchViewMode('SUBSCRIPTION')" class="px-2.5 sm:px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1 text-gray-400 hover:text-white cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>분양 정보 보기</span>
+                </button>
+            </div>
+
+            <!-- 단지명/지역 검색창 (모바일 숨김, PC에서만 노출) -->
+            <div class="relative min-w-[120px] sm:min-w-[150px] max-w-[200px] flex-1 hidden md:block">
+                <input type="text" id="mapSearchInput" placeholder="단지명, 동, 매물 검색" 
+                       class="w-full bg-zinc-900 border border-zinc-700/80 rounded-full pl-8 pr-3 py-1.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-carrot focus:ring-1 focus:ring-carrot transition-all">
+                <svg class="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+
+            <!-- 매물 전용 필터 래퍼 (모바일 숨김, PC에서만 노출) -->
+            <div id="propertyFiltersWrapper" class="hidden md:flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <!-- 거래유형 필터 (전체/매매/전세/월세) -->
+                <div class="flex items-center bg-zinc-900 p-0.5 rounded-full border border-zinc-800 shrink-0">
+                    <button type="button" onclick="setDealTypeFilter('ALL')" id="filter-deal-ALL" class="filter-deal-btn px-2.5 py-1 text-xs font-semibold rounded-full bg-carrot text-white shadow transition-all">전체</button>
+                    <button type="button" onclick="setDealTypeFilter('매매')" id="filter-deal-매매" class="filter-deal-btn px-2.5 py-1 text-xs font-medium rounded-full text-gray-400 hover:text-white transition-all">매매</button>
+                    <button type="button" onclick="setDealTypeFilter('전세')" id="filter-deal-전세" class="filter-deal-btn px-2.5 py-1 text-xs font-medium rounded-full text-gray-400 hover:text-white transition-all">전세</button>
+                    <button type="button" onclick="setDealTypeFilter('월세')" id="filter-deal-월세" class="filter-deal-btn px-2.5 py-1 text-xs font-medium rounded-full text-gray-400 hover:text-white transition-all">월세</button>
+                </div>
+
+                <!-- 가격대 필터 드롭다운 -->
+                <div class="relative shrink-0">
+                    <select id="priceFilter" onchange="applyFilters()" class="bg-zinc-900 border border-zinc-800 text-xs text-gray-300 rounded-full px-2.5 sm:px-3 py-1.5 appearance-none pr-6 sm:pr-7 focus:outline-none focus:border-carrot cursor-pointer">
+                        <option value="ALL">가격대 전체</option>
+                        <option value="UNDER_3">3억 이하</option>
+                        <option value="3_TO_5">3억 ~ 5억</option>
+                        <option value="5_TO_7">5억 ~ 7억</option>
+                        <option value="OVER_7">7억 이상</option>
+                    </select>
+                    <svg class="w-3 h-3 text-gray-400 absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+
+                <!-- 면적 필터 드롭다운 -->
+                <div class="relative shrink-0">
+                    <select id="areaFilter" onchange="applyFilters()" class="bg-zinc-900 border border-zinc-800 text-xs text-gray-300 rounded-full px-2.5 sm:px-3 py-1.5 appearance-none pr-6 sm:pr-7 focus:outline-none focus:border-carrot cursor-pointer">
+                        <option value="ALL">면적 전체</option>
+                        <option value="SMALL">소형 (~59㎡)</option>
+                        <option value="MEDIUM_SMALL">중소형 (59~84㎡)</option>
+                        <option value="MEDIUM">국민평형 (84~114㎡)</option>
+                        <option value="LARGE">대형 (114㎡~)</option>
+                    </select>
+                    <svg class="w-3 h-3 text-gray-400 absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+
+                <!-- 매물 유형 필터 (아파트/상가) -->
+                <div class="relative shrink-0 hidden lg:block">
+                    <select id="typeFilter" onchange="applyFilters()" class="bg-zinc-900 border border-zinc-800 text-xs text-gray-300 rounded-full px-2.5 sm:px-3 py-1.5 appearance-none pr-6 sm:pr-7 focus:outline-none focus:border-carrot cursor-pointer">
+                        <option value="ALL">유형 전체</option>
+                        <option value="아파트">아파트</option>
+                        <option value="주상복합">주상복합</option>
+                        <option value="상가">상가/점포</option>
+                    </select>
+                    <svg class="w-3 h-3 text-gray-400 absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+
+                <!-- 필터 초기화 버튼 -->
+                <button type="button" onclick="resetAllFilters()" title="필터 초기화" class="p-1.5 text-gray-400 hover:text-white hover:bg-zinc-800 rounded-full transition-colors shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 우측: 문의 버튼 및 바로가기 (모바일 숨김, PC에서만 노출) -->
+        <div class="hidden md:flex items-center gap-2 shrink-0">
+            <a href="tel:042-546-4900" class="bg-carrot/15 hover:bg-carrot text-carrot hover:text-white border border-carrot/80 px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                <span class="hidden sm:inline">042-546-4900</span>
+                <span class="sm:hidden">문의</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- =================================================== -->
+    <!-- 2. 본문 분할 레이아웃 (좌측 사이드바 + 우측 카카오맵)      -->
+    <!-- =================================================== -->
+    <main class="flex-1 flex overflow-hidden relative">
+
+        <!-- [PC 좌측 사이드바]: 당근부동산 스타일 매물 목록 (상세 창 열려도 상시 노출 유지) -->
+        <aside id="sidebar" class="hidden md:flex flex-col w-[360px] lg:w-[380px] shrink-0 bg-[#161618] border-r border-zinc-800 h-full z-20 relative">
+            
+            <!-- A. 매물 목록 뷰 (상시 표시) -->
+            <div id="sidebarListView" class="flex flex-col h-full w-full">
+                <!-- 사이드바 상단 정보바 -->
+                <div class="p-3.5 border-b border-zinc-800 bg-[#1a1a1d] flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2">
+                        <span id="sidebarHeaderLabel" class="text-xs text-gray-400">현재 지도 영역</span>
+                        <span class="text-xs font-bold text-gray-300">총 <span id="sidebarCount" class="text-carrot font-extrabold text-sm">0</span>개</span>
+                    </div>
+                    <div id="sortSelectWrapper" class="flex items-center gap-1.5">
+                        <select id="sortSelect" onchange="renderPropertyList()" class="bg-zinc-900 border border-zinc-800 text-[11px] text-gray-300 rounded-md px-2 py-1 focus:outline-none focus:border-carrot cursor-pointer">
+                            <option value="LATEST">최신등록순</option>
+                            <option value="PRICE_ASC">낮은가격순</option>
+                            <option value="PRICE_DESC">높은가격순</option>
+                            <option value="AREA_DESC">넓은면적순</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 사이드바 매물 카드 스크롤 영역 -->
+                <div id="propertyCardList" class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+                    <!-- JavaScript로 동적 렌더링 -->
+                </div>
+
+                <!-- [신규]: 사이드바 분양 정보 카드 스크롤 영역 ('분양 정보 보기' 선택 시 노출) -->
+                <div id="subscriptionCardList" class="hidden flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+                    <!-- JavaScript로 동적 렌더링 -->
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- [우측 메인 영역]: 전체화면 인터랙티브 카카오맵 & 플로팅 상세 패널 -->
+        <div class="flex-1 h-full relative overflow-hidden">
+            <!-- 카카오맵 컨테이너 (기본 ROADMAP 일반지도 모드 다크 필터 적용) -->
+            <div id="map" class="w-full h-full bg-[#121212] dark-map-tiles"></div>
+
+            <!-- [PC 전용 당근부동산 스타일 플로팅 상세 패널] (매물 목록 우측 지도 위에 독립 표출) -->
+            <div id="desktopDetailPanel" class="hidden absolute left-4 top-4 bottom-4 w-[390px] lg:w-[410px] z-30 bg-[#18181b]/98 backdrop-blur-md border border-zinc-700/80 rounded-2xl shadow-[0_12px_45px_rgba(0,0,0,0.85)] flex-col overflow-hidden transition-all duration-300">
+                <!-- 상세 패널 상단 네비게이션 헤더 (당근부동산 1:1 스타일) -->
+                <div class="px-4 py-3 border-b border-zinc-800 bg-[#1e1e22]/90 flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-black text-white tracking-tight">매물</span>
+                        <span id="deskDetailDealBadge" class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-carrot text-white">매매</span>
+                        <span id="deskDetailId" class="text-[10px] text-gray-400 font-mono hidden sm:inline">PROP-000000</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <!-- 공유 버튼 -->
+                        <button type="button" onclick="shareCurrentProperty()" title="매물 링크 복사" class="w-7 h-7 rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-gray-300 hover:text-white flex items-center justify-center transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                        </button>
+                        <!-- 닫기 버튼 (✕) -->
+                        <button type="button" onclick="closeDetailPanel()" title="상세 정보 닫기" class="w-7 h-7 rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-gray-300 hover:text-white flex items-center justify-center transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 스크롤 콘텐츠 -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+                    <!-- 갤러리 슬라이더 -->
+                    <div id="deskGalleryBox" class="relative w-full aspect-[16/10] bg-black/60 rounded-2xl overflow-hidden border border-zinc-800 select-none shadow-inner">
+                        <img id="deskMainImg" src="" alt="매물 이미지" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='images/view_2k.jpg';">
+                        <button type="button" onclick="slideDeskImg(-1)" id="deskPrevBtn" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-xs transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <button type="button" onclick="slideDeskImg(1)" id="deskNextBtn" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-xs transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                        <div id="deskImgCounter" class="absolute bottom-2.5 right-2.5 bg-black/75 backdrop-blur-md text-white text-[11px] px-2 py-0.5 rounded-md font-medium border border-white/20">
+                            1 / 1
+                        </div>
+                    </div>
+
+                    <!-- 가격 및 타이틀 (당근부동산 4번 캡처 스타일) -->
+                    <div class="pt-0.5">
+                        <div class="text-xs font-semibold text-gray-400 flex items-center gap-1 mb-1" id="deskBreadcrumb">
+                            <span id="deskComplexName">도안아이파크</span>
+                            <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                        <div class="text-2xl lg:text-3xl font-black text-carrot tracking-tight mb-1" id="deskPrice">5억 7,500만</div>
+                        <h3 class="text-base lg:text-lg font-bold text-white leading-snug mb-1" id="deskTitle">도안아이파크아파트 1502동 1903호</h3>
+                        <p class="text-xs text-gray-400 flex items-center gap-1.5" id="deskLocation">
+                            <svg class="w-3.5 h-3.5 text-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>대전광역시 서구 도안동</span>
+                        </p>
+                    </div>
+
+                    <!-- 핵심 제원 그리드 -->
+                    <div class="grid grid-cols-2 gap-2 p-3 bg-zinc-900/90 rounded-xl border border-zinc-800 text-center">
+                        <div class="p-1.5 bg-black/30 rounded-lg">
+                            <span class="text-[10px] text-gray-400 block mb-0.5">평면타입</span>
+                            <strong id="deskFloorType" class="text-xs text-white font-bold block truncate" style="color: #ffffff !important;">B-Type</strong>
+                        </div>
+                        <div class="p-1.5 bg-black/30 rounded-lg">
+                            <span class="text-[10px] text-gray-400 block mb-0.5">공급 / 전용면적</span>
+                            <strong id="deskArea" class="text-xs text-white font-bold block truncate">114.22㎡</strong>
+                        </div>
+                        <div class="p-1.5 bg-black/30 rounded-lg">
+                            <span class="text-[10px] text-gray-400 block mb-0.5">해당층 / 총층</span>
+                            <strong id="deskFloor" class="text-xs text-white font-bold block truncate">19층 / 25층</strong>
+                        </div>
+                        <div class="p-1.5 bg-black/30 rounded-lg">
+                            <span class="text-[10px] text-gray-400 block mb-0.5">매물 유형</span>
+                            <strong id="deskType" class="text-xs text-white font-bold block truncate">아파트</strong>
+                        </div>
+                    </div>
+
+                    <!-- 상세 설명 -->
+                    <div>
+                        <h4 class="text-xs font-bold text-gray-200 mb-2 border-l-2 border-carrot pl-2 flex items-center justify-between">
+                            <span>매물 상세 설명</span>
+                            <span class="text-[10px] text-gray-500 font-normal">확인매물</span>
+                        </h4>
+                        <div id="deskDesc" class="p-3.5 bg-zinc-900/60 rounded-xl border border-zinc-800/80 text-xs text-gray-300 leading-relaxed whitespace-pre-line">
+                            상세 설명이 들어갑니다.
+                        </div>
+                    </div>
+
+                    <!-- 중개사무소 정보 -->
+                    <div class="p-3 bg-gold/10 border border-gold/30 rounded-xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-gold font-bold block">전담 공인중개사</span>
+                            <span class="text-xs font-bold text-white">도안수목토 재벌 공인중개사사무소</span>
+                            <span class="text-[10px] text-gray-400 block mt-0.5">대표 김소형 | 042-546-4900</span>
+                        </div>
+                        <a href="tel:042-546-4900" class="px-3 py-1.5 bg-gold hover:bg-gold-dark text-black font-bold text-xs rounded-lg transition-all shadow flex items-center gap-1 shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            상담
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 상세 패널 하단 고정 전화 상담 문의 버튼 -->
+                <div class="p-3 border-t border-zinc-800 bg-[#1a1a1d] shrink-0">
+                    <a href="tel:042-546-4900" class="w-full py-3 bg-carrot hover:bg-carrot-dark text-white font-bold text-xs lg:text-sm rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 active:scale-[0.99]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                        <span>전화 상담 문의 (042-546-4900)</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 하단 중앙 플로팅 배지 (PC 전용 총 매물 수 표시) -->
+            <div id="mapBadge" class="hidden md:flex absolute bottom-6 left-1/2 -translate-x-1/2 z-20 bg-zinc-950/90 backdrop-blur-md border border-carrot/70 hover:border-carrot text-white px-5 py-2.5 rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.6)] items-center gap-2.5 cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 group">
+                <span class="w-2.5 h-2.5 rounded-full bg-carrot animate-pulse shadow-[0_0_8px_#FF6F0F]"></span>
+                <span class="text-xs sm:text-sm font-semibold tracking-tight">이 지역 매물 <strong id="mapCountText" class="text-carrot font-bold">0</strong>개</span>
+            </div>
+
+            <!-- 지도 타입 전환 세그먼트 컨트롤러 (일반지도 ROADMAP ↔ 위성사진 HYBRID) -->
+            <div class="absolute right-4 top-4 z-20 flex items-center bg-zinc-900/95 backdrop-blur-md p-1 rounded-xl border border-zinc-700/80 shadow-[0_4px_16px_rgba(0,0,0,0.6)]">
+                <button type="button" id="btnMapTypeRoadmap" onclick="setMapType('ROADMAP')" 
+                        class="px-2.5 py-1 text-xs font-bold rounded-lg transition-all duration-200 bg-carrot text-white shadow-sm flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                    <span>일반지도</span>
+                </button>
+                <button type="button" id="btnMapTypeHybrid" onclick="setMapType('HYBRID')" 
+                        class="px-2.5 py-1 text-xs font-medium rounded-lg text-gray-400 hover:text-white transition-all duration-200 flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>위성사진</span>
+                </button>
+            </div>
+
+            <!-- 지도 우측 기능 컨트롤러 (도안 중심 리셋, GPS, 줌 +/-) -->
+            <div class="absolute right-4 top-16 sm:top-[68px] z-20 flex flex-col gap-2">
+                <!-- 도안수목토 중심 리셋 버튼 -->
+                <button type="button" onclick="resetMapCenter()" title="도안동 중심(수목토)으로 이동" 
+                        class="w-10 h-10 bg-zinc-900/95 hover:bg-zinc-800 text-gold border border-zinc-700/80 rounded-xl shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </button>
+                <!-- 내 위치 (GPS) 버튼 -->
+                <button type="button" onclick="moveToCurrentLocation()" title="현재 내 위치로 이동" 
+                        class="w-10 h-10 bg-zinc-900/95 hover:bg-zinc-800 text-carrot border border-zinc-700/80 rounded-xl shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"></path></svg>
+                </button>
+                <!-- 줌 확대 (+) -->
+                <button type="button" onclick="zoomIn()" title="지도 확대" 
+                        class="w-10 h-10 bg-zinc-900/95 hover:bg-zinc-800 text-white border border-zinc-700/80 rounded-t-xl shadow-lg flex items-center justify-center transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                </button>
+                <!-- 줌 축소 (-) -->
+                <button type="button" onclick="zoomOut()" title="지도 축소" 
+                        class="w-10 h-10 bg-zinc-900/95 hover:bg-zinc-800 text-white border border-zinc-700/80 -mt-2 rounded-b-xl shadow-lg flex items-center justify-center transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- =================================================== -->
+        <!-- 2-1. 모바일 전용 하단 중앙 플로팅 '목록보기' 버튼 (목록을 위로 올리는 버튼) -->
+        <!-- =================================================== -->
+        <button type="button" id="mobileListFloatingBtn" onclick="expandMobileSheet()" 
+                class="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-zinc-950/95 backdrop-blur-md border border-carrot text-white px-5 py-3 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex items-center gap-2 cursor-pointer transition-all duration-200 active:scale-95 group hover:border-orange-400">
+            <svg class="w-4 h-4 text-carrot animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path>
+            </svg>
+            <span class="text-xs sm:text-sm font-bold text-gray-100 flex items-center gap-1.5">
+                <span id="floatingListLabel">매물 목록보기</span>
+                <strong id="mobileFloatingCount" class="text-carrot font-extrabold text-sm sm:text-base">0</strong>개
+                <span class="text-[11px] text-gray-400 font-normal">▲</span>
+            </span>
+        </button>
+
+        <!-- =================================================== -->
+        <!-- 3. 모바일 전용 반응형 바텀시트 (Bottom Sheet)          -->
+        <!-- =================================================== -->
+        <div id="mobileBottomSheet" class="md:hidden fixed inset-x-0 bottom-0 z-40 bg-[#161618] border-t border-zinc-800 rounded-t-2xl shadow-[0_-8px_30px_rgba(0,0,0,0.8)] bottom-sheet bottom-sheet-collapsed flex flex-col max-h-[82vh]">
+            
+            <!-- 바텀시트 핸들러 및 헤더 바 -->
+            <div class="p-3 border-b border-zinc-800/80 flex flex-col items-center justify-center cursor-pointer select-none shrink-0" onclick="toggleMobileSheet()">
+                <div class="w-10 h-1.5 bg-zinc-600 rounded-full mb-2"></div>
+                <div class="w-full flex items-center justify-between px-2">
+                    <span class="text-xs sm:text-sm font-bold text-gray-200 flex items-center gap-1.5">
+                        <span id="mobileHeaderDot" class="w-2 h-2 rounded-full bg-carrot animate-pulse"></span>
+                        <span id="mobileHeaderLabel">매물 목록</span> <strong id="mobileHeaderCount" class="text-carrot font-bold">0</strong>개
+                    </span>
+                    <button type="button" id="mobileSheetToggleText" class="text-xs text-carrot font-bold flex items-center gap-1 px-2.5 py-1 bg-carrot/10 rounded-full border border-carrot/30">
+                        전체 목록 펼치기 ▲
+                    </button>
+                </div>
+            </div>
+
+            <!-- A. 모바일 매물 카드 목록 뷰 -->
+            <div id="mobileListView" class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3 pb-8">
+                <div id="mobilePropertyList" class="space-y-3">
+                    <!-- JavaScript로 동적 렌더링 -->
+                </div>
+                <!-- [신규]: 모바일 분양 정보 리스트 -->
+                <div id="mobileSubscriptionList" class="hidden space-y-3">
+                    <!-- JavaScript로 동적 렌더링 -->
+                </div>
+            </div>
+
+            <!-- B. 모바일 당근 스타일 상세 뷰 (지도를 가리지 않고 바텀시트에서 전환) -->
+            <div id="mobileDetailView" class="hidden flex-1 flex-col overflow-hidden bg-[#161618]">
+                <!-- 상세 헤더 (뒤로가기 + 닫기) -->
+                <div class="px-4 py-2.5 border-b border-zinc-800 bg-[#1a1a1d] flex items-center justify-between shrink-0">
+                    <button type="button" onclick="closeDetailPanel()" class="flex items-center gap-1 text-xs font-bold text-gray-300 hover:text-carrot py-1 px-1.5 rounded-lg">
+                        <svg class="w-4 h-4 text-carrot" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        <span>매물 목록</span>
+                    </button>
+                    <div class="flex items-center gap-1.5">
+                        <span id="mobDetailDealBadge" class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-carrot text-white">매매</span>
+                        <button type="button" onclick="closeDetailPanel()" class="w-6 h-6 rounded-full bg-zinc-800 text-gray-300 flex items-center justify-center">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 상세 스크롤 콘텐츠 -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-3.5 space-y-3.5 pb-6">
+                    <!-- 사진 슬라이더 -->
+                    <div id="mobGalleryBox" class="relative w-full aspect-[16/10] bg-black/50 rounded-xl overflow-hidden border border-zinc-800 select-none">
+                        <img id="mobMainImg" src="" alt="매물 이미지" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='images/view_2k.jpg';">
+                        <button type="button" onclick="slideMobImg(-1)" id="mobPrevBtn" class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <button type="button" onclick="slideMobImg(1)" id="mobNextBtn" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                        <div id="mobImgCounter" class="absolute bottom-2 right-2 bg-black/75 text-white text-[10px] px-2 py-0.5 rounded-md font-medium border border-white/20">
+                            1 / 1
+                        </div>
+                    </div>
+
+                    <!-- 가격 및 타이틀 -->
+                    <div>
+                        <div class="text-2xl font-black text-carrot tracking-tight mb-0.5" id="mobPrice">5억 7,500만</div>
+                        <h3 class="text-sm font-bold text-white leading-snug mb-1" id="mobTitle">도안아이파크아파트 1502동 1903호</h3>
+                        <p class="text-[11px] text-gray-400 flex items-center gap-1" id="mobLocation">
+                            <svg class="w-3 h-3 text-gold shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>대전광역시 서구 도안동</span>
+                        </p>
+                    </div>
+
+                    <!-- 핵심 제원 그리드 -->
+                    <div class="grid grid-cols-2 gap-2 p-2.5 bg-zinc-900/90 rounded-xl border border-zinc-800 text-center">
+                        <div class="p-1.5 bg-black/30 rounded-lg">
+                            <span class="text-[9px] text-gray-400 block mb-0.5">평면타입</span>
+                            <strong id="mobFloorType" class="text-[11px] text-white font-bold block truncate" style="color: #ffffff !important;">B-Type</strong>
+                        </div>
+                        <div class="p-1.5 bg-black/30 rounded-lg">
+                            <span class="text-[9px] text-gray-400 block mb-0.5">공급 / 전용면적</span>
+                            <strong id="mobArea" class="text-[11px] text-white font-bold block truncate">114.22㎡</strong>
+                        </div>
+                        <div class="p-1.5 bg-black/30 rounded-lg">
+                            <span class="text-[9px] text-gray-400 block mb-0.5">해당층 / 총층</span>
+                            <strong id="mobFloor" class="text-[11px] text-white font-bold block truncate">19층 / 25층</strong>
+                        </div>
+                        <div class="p-1.5 bg-black/30 rounded-lg">
+                            <span class="text-[9px] text-gray-400 block mb-0.5">매물 유형</span>
+                            <strong id="mobType" class="text-[11px] text-white font-bold block truncate">아파트</strong>
+                        </div>
+                    </div>
+
+                    <!-- 상세 설명 -->
+                    <div>
+                        <h4 class="text-xs font-bold text-gray-200 mb-1.5 border-l-2 border-carrot pl-2">매물 상세 설명</h4>
+                        <div id="mobDesc" class="p-3 bg-zinc-900/60 rounded-xl border border-zinc-800/80 text-xs text-gray-300 leading-relaxed whitespace-pre-line">
+                            상세 설명이 들어갑니다.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 모바일 상세 하단 전화 연결 버튼 -->
+                <div class="p-2.5 border-t border-zinc-800 bg-zinc-900/95 shrink-0">
+                    <a href="tel:042-546-4900" class="w-full py-2.5 bg-carrot hover:bg-carrot-dark text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                        <span>전화 상담 문의 (042-546-4900)</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- =================================================== -->
+    <!-- 5. 당근부동산 지도 핵심 스크립트                        -->
+    <!-- =================================================== -->
+    <script>
+        // 실제 등록 매물 데이터 (기본 3건 - 정확한 동별 건물 및 전국 주소 좌표 적용)
+        const BACKUP_PROPERTIES = [
+            {
+                id: 'PROP-725042',
+                type: '상가',
+                subType: '상가',
+                dealType: '월세',
+                title: '계룡오피스텔 1층 무권리상가',
+                location: '충청남도 계룡시 엄사면 번영로 12',
+                lat: 36.28828,
+                lng: 127.24377,
+                price: '월세 2,000 / 95만원',
+                priceNumber: 95,
+                floorType: 'None',
+                area: '62.4㎡ (19평형)',
+                floor: '1층 / 5층',
+                tags: '#검증된입지 #장사하기좋은대박자리',
+                description: '📌 계룡시 엄사면 계룡오피스텔 1층 상가\n\n🔥 검증된 입지! 장사하기 좋은 대박 자리!',
+                imageUrl: 'images/preview_complex.jpg',
+                images: ['images/preview_complex.jpg'],
+                mapImageUrl: '',
+                contact: '010-6480-8287'
+            },
+            {
+                id: 'PROP-812414',
+                type: '주거',
+                subType: '아파트',
+                dealType: '매매',
+                title: '도안아이파크아파트 1502동 1903호',
+                location: '대전광역시 서구 도안동',
+                lat: 36.32120,
+                lng: 127.34705,
+                price: '5억 7500만',
+                priceNumber: 57500,
+                floorType: 'D-Type',
+                area: '114.22㎡ (35평형)',
+                floor: '19층 / 25층',
+                tags: '#남향 #로얄층 #뷰좋은집 #갑천뷰영구조망',
+                description: '갑천뷰 영구 조망과 양창으로 뛰어난 채광이 돋보이는 집입니다.\n앞동에 위치해 탁 트인 조망을 누릴 수 있으며 주방 옆 다용도실이 있어 생활이 편리합니다.',
+                imageUrl: 'images/view_2k.jpg',
+                images: [
+                    'images/view_2k.jpg',
+                    'images/preview_complex.jpg',
+                    'images/단지조감도_2K.jpg'
+                ],
+                mapImageUrl: '',
+                contact: '010-6480-8287'
+            },
+            {
+                id: 'PROP-717566',
+                type: '주거',
+                subType: '아파트',
+                dealType: '매매',
+                title: '도안수목토아파트 101동 203호',
+                location: '대전광역시 서구 도안동',
+                lat: 36.32040,
+                lng: 127.34705,
+                price: '4억 7000만',
+                priceNumber: 47000,
+                floorType: 'A-Type',
+                area: '112㎡ (34평형)',
+                floor: '2층 / 15층',
+                tags: '#남서향 #호수공원입접동 #드레스룸넓은구조 #최근리모델링',
+                description: '호수공원과 인접한 저층 세대로 편안한 주거 환경을 영위할 수 있습니다.✨',
+                imageUrl: 'images/bird_view_2k.jpg',
+                images: [
+                    'images/bird_view_2k.jpg',
+                    'images/preview_complex.jpg',
+                    'images/A-Type-Plan03.png'
+                ],
+                mapImageUrl: 'images/A-Type-Plan03.png',
+                contact: '042-546-4900'
+            }
+        ];
+
+        // 단지별 개별 동 정밀 건물 중심 좌표 매핑 (카카오맵 타일 건물 풋프린트 오차 0m 검증)
+        const DONG_PRESET_COORDS = {
+            // 도안아이파크아파트 (15단지)
+            '아이파크_1501': { lat: 36.32120, lng: 127.34630 },
+            '아이파크_1502': { lat: 36.32120, lng: 127.34705 },
+            '아이파크_1503': { lat: 36.32185, lng: 127.34700 },
+            '아이파크_1504': { lat: 36.32220, lng: 127.34720 },
+            '아이파크_1505': { lat: 36.32320, lng: 127.34700 },
+            '아이파크_1506': { lat: 36.32330, lng: 127.34580 },
+            '아이파크_1507': { lat: 36.32340, lng: 127.34500 },
+            '아이파크_1508': { lat: 36.32310, lng: 127.34440 },
+            '아이파크_1509': { lat: 36.32250, lng: 127.34400 },
+            '아이파크_1510': { lat: 36.32270, lng: 127.34500 },
+            '아이파크_1512': { lat: 36.32160, lng: 127.34460 },
+
+            // 도안수목토아파트 (1단지)
+            '수목토_101': { lat: 36.32040, lng: 127.34705 },
+            '수목토_102': { lat: 36.31970, lng: 127.34710 },
+            '수목토_103': { lat: 36.31910, lng: 127.34710 },
+            '수목토_104': { lat: 36.31840, lng: 127.34700 },
+            '수목토_105': { lat: 36.32040, lng: 127.34660 },
+            '수목토_106': { lat: 36.31970, lng: 127.34630 },
+            '수목토_107': { lat: 36.31820, lng: 127.34620 },
+            '수목토_108': { lat: 36.32040, lng: 127.34610 },
+            '수목토_109': { lat: 36.31970, lng: 127.34550 },
+            '수목토_110': { lat: 36.31880, lng: 127.34540 },
+            '수목토_111': { lat: 36.32050, lng: 127.34510 },
+            '수목토_112': { lat: 36.31970, lng: 127.34490 },
+            '수목토_113': { lat: 36.31780, lng: 127.34460 },
+            '수목토_115': { lat: 36.31970, lng: 127.34410 },
+            '수목토_116': { lat: 36.31870, lng: 127.34410 },
+            '수목토_117': { lat: 36.31770, lng: 127.34390 }
+        };
+
+        // 주요 단지 중심 좌표 매핑 (대전 도안동 일대)
+        const PRESET_COORDS = {
+            '수목토': { lat: 36.3204, lng: 127.3442 },
+            '도안수목토': { lat: 36.3204, lng: 127.3442 },
+            '수목토아파트': { lat: 36.3204, lng: 127.3442 },
+            '아이파크': { lat: 36.3228, lng: 127.3425 },
+            '도안아이파크': { lat: 36.3228, lng: 127.3425 },
+            '도안아이파크아파트': { lat: 36.3228, lng: 127.3425 },
+            '도안 힐스테이트': { lat: 36.3195, lng: 127.3460 },
+            '힐스테이트': { lat: 36.3195, lng: 127.3460 },
+            '하늘채': { lat: 36.3315, lng: 127.4180 },
+            '대전 하늘채': { lat: 36.3315, lng: 127.4180 }
+        };
+
+        // 전역 상태 관리
+        let map = null;
+        let clusterer = null;
+        let geocoder = null;
+        let allProperties = [];
+        let filteredProperties = [];
+        let visibleProperties = [];
+        let propertyOverlays = []; // 개별 가격 말풍선 커스텀 오버레이 목록
+        let propertyMarkers = [];  // 클러스터러용 마커 목록
+        let activePropertyId = null;
+        let activePulseOverlay = null; // 당근 스타일 깜빡이는 레이더 포인트 커스텀 오버레이
+
+        // [신규]: 뷰 모드 관리 ('PROPERTY': 매물 보기, 'SUBSCRIPTION': 분양 정보 보기)
+        let currentViewMode = 'PROPERTY';
+        let subscriptionOverlays = []; // 분양 정보 파란색 커스텀 오버레이 목록
+        let activeSubPulseOverlay = null; // 선택된 분양 단지의 파란색 레이더 펄스 오버레이
+        let activeSubPopupOverlay = null; // 선택된 분양 단지의 상세 파란색 팝업 오버레이
+        let activeSubId = null;
+        let cachedSubscriptions = []; // 분양 정보 목록 캐시
+
+        // 분양 정보 기본 프리셋
+        const DEFAULT_SUBSCRIPTION_ITEMS = [
+            {
+                id: 'sub-preset-1',
+                title: '대전 선화동 하늘채 루시에르',
+                tag: '105타입, 119타입 분양중',
+                scale: '총 998세대',
+                address: '대전광역시 중구 선화동 95-3 일원',
+                desc: '트램 2호선 역세권, 중구청 건립 수혜지역',
+                thumbnail: 'images/sub_hanulche_thumb.jpg',
+                img: 'images/sub_hanulche_thumb.jpg',
+                homepageUrl: 'https://domus-vision.com',
+                youtubeUrl: 'https://www.youtube.com/watch?v=yDVMokqyoD8',
+                lat: 36.33481,
+                lng: 127.41979
+            }
+        ];
+
+        // 분양 단지 대표 fallback 좌표 매핑 (카카오 Geocoder 실패/지연 시 안전 보장)
+        const PRESET_SUB_COORDS = {
+            '선화동': { lat: 36.33481, lng: 127.41979 },
+            '하늘채': { lat: 36.33481, lng: 127.41979 },
+            '루시에르': { lat: 36.33481, lng: 127.41979 },
+            '도안': { lat: 36.3405, lng: 127.3382 },
+            '푸르지오': { lat: 36.3405, lng: 127.3382 },
+            '유성': { lat: 36.3551, lng: 127.3421 }
+        };
+
+        // 분양 정보 데이터 로드 유틸 (localStorage + 기본 프리셋)
+        function getSubscriptionList() {
+            let list = [];
+            try {
+                const stored = localStorage.getItem('sumokto_custom_subscriptions');
+                if (stored !== null) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) {
+                        list = parsed;
+                    }
+                }
+            } catch (e) {
+                console.warn('Subscription load error:', e);
+            }
+
+            // '사전접수'와 '분양중' 2가지 상태 분류 규칙 및 등록 데이터 필드 완전 매핑
+            list.forEach((item, idx) => {
+                if (!item.id) item.id = 'sub-' + (idx + 1);
+                const tagStr = (item.tag || '');
+                const statusStr = (item.status || '');
+                // '분류/태그 항목'에서 '분양중' 키워드가 나오면 '분양중', 그 외는 '사전접수'
+                const isBoonYang = tagStr.includes('분양중') || statusStr.includes('분양중');
+                item.statusBadge = isBoonYang ? '분양중' : '사전접수';
+                item.isBoonYang = isBoonYang;
+
+                // 등록된 필드 정규화 및 상호 호환 (index.html 분양 등록 모달 100% 동기화)
+                item.title = item.title || '신규 분양 단지';
+                item.scale = item.scale || '공급규모 미정';
+                item.address = item.specs || item.address || '대전광역시';
+                item.specs = item.specs || item.address || '';
+                item.desc = item.desc || '';
+                item.thumbnail = item.img || item.thumbnail || 'images/sub_hanulche_thumb.jpg';
+                if (item.thumbnail === 'images/view_2k.jpg') item.thumbnail = 'images/sub_hanulche_thumb.jpg';
+                if (item.img === 'images/view_2k.jpg') item.img = 'images/sub_hanulche_thumb.jpg';
+                item.img = item.img || item.thumbnail || 'images/sub_hanulche_thumb.jpg';
+
+                // [PC-모바일 실시간 값 공유]: 사용자가 등록한 실제 홈페이지/유튜브 주소 완벽 보장
+                if (item.id === 'sub-preset-1' || (item.title && item.title.includes('하늘채'))) {
+                    if (!item.homepageUrl || item.homepageUrl.includes('hanulche.co.kr')) item.homepageUrl = 'https://domus-vision.com';
+                    if (!item.homepage || item.homepage.includes('hanulche.co.kr')) item.homepage = 'https://domus-vision.com';
+                    if (!item.youtubeUrl || item.youtubeUrl === 'https://youtube.com' || item.youtubeUrl.includes('yDVMokqyod8')) item.youtubeUrl = 'https://www.youtube.com/watch?v=yDVMokqyoD8';
+                    if (!item.youtube || item.youtube === 'https://youtube.com' || item.youtube.includes('yDVMokqyod8')) item.youtube = 'https://www.youtube.com/watch?v=yDVMokqyoD8';
+                } else {
+                    item.homepageUrl = item.homepage || item.homepageUrl || '';
+                    item.youtubeUrl = item.youtube || item.youtubeUrl || '';
+                }
+            });
+
+            cachedSubscriptions = list;
+            return list;
+        }
+
+        // 서버 data/subscriptions.json 최신 데이터 동기화 (PC-모바일 실시간 값 공유)
+        async function syncServerSubscriptionsMap() {
+            try {
+                const res = await fetch('data/subscriptions.json?t=' + Date.now(), { cache: 'no-store' });
+                if (res.ok) {
+                    const list = await res.json();
+                    if (Array.isArray(list)) {
+                        try {
+                            localStorage.setItem('sumokto_custom_subscriptions', JSON.stringify(list));
+                        } catch (e) {}
+                        cachedSubscriptions = list;
+                        if (currentViewMode === 'SUBSCRIPTION') {
+                            renderSubscriptionMode();
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+        syncServerSubscriptionsMap();
+
+        // 필터 상태
+        let currentDealType = 'ALL';
+        let currentPriceFilter = 'ALL';
+        let currentAreaFilter = 'ALL';
+        let currentTypeFilter = 'ALL';
+        let currentSearchQuery = '';
+
+        // 상세 패널 슬라이더 상태
+        let currentDetailImages = [];
+        let currentDetailImgIdx = 0;
+
+        // 초기화 진입점
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.kakao && window.kakao.maps) {
+                kakao.maps.load(function() {
+                    initKakaoMap();
+                    loadAllProperties();
+                    initFilterEvents();
+                });
+            } else {
+                console.error('카카오맵 SDK 로드 실패');
+                // SDK 실패 시에도 UI 렌더링
+                loadAllProperties();
+                initFilterEvents();
+            }
+        });
+
+        // 1. 카카오맵 초기화
+        function initKakaoMap() {
+            const container = document.getElementById('map');
+            const isMobile = window.innerWidth < 768;
+            // PC: 좌측 사이드바 폭(400px)을 감안한 최적 중심 (36.3215, 127.3442)
+            // 모바일: 3개 매물(1502동, 101동, 108동)이 화면 정중앙에 완벽하게 오도록 정밀 중심 (36.3208, 127.3466)
+            const initialCenter = isMobile 
+                ? new kakao.maps.LatLng(36.3208, 127.3466) 
+                : new kakao.maps.LatLng(36.3215, 127.3442);
+            const options = {
+                center: initialCenter,
+                level: 3 // 50m 스케일 (등록된 모든 매물이 한눈에 보이는 최적 기본값)
+            };
+
+            map = new kakao.maps.Map(container, options);
+
+            // Geocoder 초기화
+            if (kakao.maps.services && kakao.maps.services.Geocoder) {
+                geocoder = new kakao.maps.services.Geocoder();
+            }
+
+            // MarkerClusterer 초기화 (당근 스타일 주황색 원형 클러스터링)
+            clusterer = new kakao.maps.MarkerClusterer({
+                map: map,
+                averageCenter: true,
+                minLevel: 5, // 레벨 5 이상(축소 시)에서 클러스터링
+                disableClickZoom: false, // 클러스터 클릭 시 부드럽게 자동 확대
+                styles: [
+                    {
+                        width: '46px',
+                        height: '46px',
+                        background: 'linear-gradient(135deg, #FF7E36 0%, #FF5A00 100%)',
+                        borderRadius: '50%',
+                        color: '#FFFFFF',
+                        textAlign: 'center',
+                        fontWeight: '800',
+                        lineHeight: '46px',
+                        fontSize: '15px',
+                        boxShadow: '0 4px 14px rgba(255, 90, 0, 0.5)',
+                        border: '2.5px solid #FFFFFF'
+                    },
+                    {
+                        width: '54px',
+                        height: '54px',
+                        background: 'linear-gradient(135deg, #FF6F0F 0%, #E85000 100%)',
+                        borderRadius: '50%',
+                        color: '#FFFFFF',
+                        textAlign: 'center',
+                        fontWeight: '800',
+                        lineHeight: '54px',
+                        fontSize: '16px',
+                        boxShadow: '0 6px 18px rgba(255, 90, 0, 0.65)',
+                        border: '3px solid #FFFFFF'
+                    }
+                ]
+            });
+
+            // 지도 드래그/줌 변경 완료 시 (idle 이벤트) 실시간 동기화
+            kakao.maps.event.addListener(map, 'idle', function() {
+                updateVisibleProperties();
+                adjustOverlayVisibilityByZoom();
+            });
+
+            // 지도 줌 변경 시 오버레이 가시성 제어
+            kakao.maps.event.addListener(map, 'zoom_changed', function() {
+                adjustOverlayVisibilityByZoom();
+            });
+
+            // 창 크기 변경 시 카카오맵 relayout
+            window.addEventListener('resize', debounce(function() {
+                if (map) {
+                    map.relayout();
+                    updateVisibleProperties();
+                }
+            }, 150));
+
+            // 모바일 초기 로드 시 지도가 화면 전체에 즉시 꽉 차도록 relayout 보장
+            setTimeout(function() {
+                if (map) {
+                    map.relayout();
+                    const isMob = window.innerWidth < 768;
+                    const center = isMob 
+                        ? new kakao.maps.LatLng(36.3208, 127.3466) 
+                        : new kakao.maps.LatLng(36.3215, 127.3442);
+                    map.setCenter(center);
+                }
+            }, 250);
+        }
+
+        // 줌 레벨에 따라 개별 오버레이 표시 여부 조정 (레벨 5 이상에서는 클러스터러만 강조)
+        function adjustOverlayVisibilityByZoom() {
+            if (!map) return;
+            // [방어 로직]: 분양 정보 보기 모드일 때는 매물 가격 마커가 다시 나타나지 않도록 철저히 차단
+            if (currentViewMode === 'SUBSCRIPTION') {
+                propertyOverlays.forEach(item => {
+                    if (item.overlay) item.overlay.setVisible(false);
+                });
+                return;
+            }
+            const level = map.getLevel();
+            const showOverlays = level <= 4;
+            propertyOverlays.forEach(item => {
+                if (item.overlay) {
+                    item.overlay.setVisible(showOverlays);
+                }
+            });
+        }
+
+        // 2. 매물 데이터 로드 및 좌표 보정 (등록된 실제 매물만 로드)
+        async function loadAllProperties() {
+            let loaded = [];
+
+            // 관계자 모드에서 삭제된 매물 ID 목록 (영구 삭제 필터링)
+            let deletedIds = [];
+            try {
+                deletedIds = JSON.parse(localStorage.getItem('chebol_deleted_property_ids') || '[]');
+            } catch (e) {}
+
+            // 관계자 모드에서 수정한 매물 데이터(전화번호 등) 보관소
+            let modifiedMap = {};
+            try {
+                modifiedMap = JSON.parse(localStorage.getItem('chebol_modified_properties') || '{}');
+            } catch (e) {}
+
+            // 1순위: 로컬스토리지에 저장된 최신 매물 데이터 (관계자 수정/삭제 즉시 0초 반영)
+            try {
+                const localData = localStorage.getItem('chebol_properties_data');
+                if (localData) {
+                    const parsed = JSON.parse(localData);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        loaded = parsed.filter(p => !deletedIds.includes(p.id));
+                    }
+                }
+            } catch (e) {
+                console.warn('LocalStorage load error:', e);
+            }
+
+            // 2순위: GitHub Raw URL fetch (GitHub 커밋 즉시 실시간 동기화)
+            if (loaded.length === 0) {
+                try {
+                    const rawUrl = `https://raw.githubusercontent.com/oransee3/SuMokTo-Webpage/main/data/properties.json?t=${Date.now()}`;
+                    const res = await fetch(rawUrl, { cache: 'no-store' });
+                    if (res.ok) {
+                        const json = await res.json();
+                        const items = Array.isArray(json) ? json : (json.data || []);
+                        if (items && items.length > 0) {
+                            loaded = items.filter(p => !deletedIds.includes(p.id));
+                        }
+                    }
+                } catch (e) {
+                    console.warn('GitHub Raw fetch failed:', e);
+                }
+            }
+
+            // 3순위: data/properties.json fetch (서버에 등록된 실제 매물 원본 데이터)
+            if (loaded.length === 0) {
+                try {
+                    const res = await fetch('data/properties.json?t=' + Date.now(), { cache: 'no-store' });
+                    if (res.ok) {
+                        const json = await res.json();
+                        const items = Array.isArray(json) ? json : (json.data || []);
+                        if (items && items.length > 0) {
+                            loaded = items.filter(p => !deletedIds.includes(p.id));
+                        }
+                    }
+                } catch (e) {
+                    console.warn('JSON fetch failed:', e);
+                }
+            }
+
+            // 4순위: 기본 백업 (실제 등록 매물 3건)
+            if (loaded.length === 0) {
+                loaded = BACKUP_PROPERTIES.filter(p => !deletedIds.includes(p.id));
+            }
+
+            // 사용자가 실제로 등록한 매물만 정확히 반영 (삭제된 매물 배제 & 사용자 최신 수정사항 우선 병합)
+            allProperties = loaded.filter(p => !deletedIds.includes(p.id)).map(p => {
+                if (modifiedMap[p.id]) {
+                    return { ...p, ...modifiedMap[p.id] };
+                }
+                return p;
+            });
+
+            // 각 매물의 좌표 결정 (동별 정밀 건물 좌표 우선 매핑)
+            resolveAllCoordinates(allProperties);
+        }
+
+        // 탭 간 실시간 동기화: index.html(관계자 모드)에서 매물 삭제/수정 시 map.html도 즉시 갱신
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'chebol_properties_data' || e.key === 'chebol_properties_last_deleted' || e.key === 'chebol_deleted_property_ids' || e.key === 'chebol_properties_last_updated' || e.key === 'chebol_modified_properties') {
+                console.log('실시간 매물 변경 감지: 지도 및 매물 목록 즉시 갱신');
+                loadAllProperties();
+            }
+        });
+
+        // 대한민국 전역 매물 카카오 Geocoder 실시간 좌표 변환 및 캐시 연동
+        function resolvePropertyCoordinates(p, callback) {
+            const fullText = ((p.title || '') + ' ' + (p.location || '')).trim();
+            const addr = (p.location || '').trim();
+
+            // 1. 단지 구분 및 동별 정밀 좌표 매핑 (도안수목토, 도안아이파크 동별 건물 실측 좌표 우선 보장)
+            let complexKey = '';
+            if (fullText.includes('아이파크')) {
+                complexKey = '아이파크';
+            } else if (fullText.includes('수목토')) {
+                complexKey = '수목토';
+            }
+
+            const dongMatch = (p.title || '').match(/(\d+)동/);
+            const dongStr = dongMatch ? dongMatch[1] : '';
+
+            if (complexKey && dongStr) {
+                const dongCoordKey = `${complexKey}_${dongStr}`;
+                if (DONG_PRESET_COORDS[dongCoordKey]) {
+                    p.lat = DONG_PRESET_COORDS[dongCoordKey].lat;
+                    p.lng = DONG_PRESET_COORDS[dongCoordKey].lng;
+                    if (callback) callback(p);
+                    return;
+                }
+            }
+
+            // 2. 이미 유효한 정밀 좌표가 지정되어 있는 경우 (도안동 강제 기본값 36.3204, 127.3442가 아니거나 도안 관련 매물인 경우)
+            const isDefaultDoan = (p.lat && p.lng && Math.abs(p.lat - 36.3204) < 0.0001 && Math.abs(p.lng - 127.3442) < 0.0001);
+            if (p.lat && p.lng && (!isDefaultDoan || fullText.includes('도안') || fullText.includes('서구'))) {
+                if (callback) callback(p);
+                return;
+            }
+
+            // 3. 로컬 지오코딩 캐시 확인 (0.001초 빠른 응답)
+            try {
+                const cacheStr = localStorage.getItem('sumokto_geo_cache');
+                if (cacheStr) {
+                    const cache = JSON.parse(cacheStr);
+                    if (cache[addr] && cache[addr].lat && cache[addr].lng) {
+                        p.lat = cache[addr].lat;
+                        p.lng = cache[addr].lng;
+                        if (callback) callback(p);
+                        return;
+                    }
+                }
+            } catch (e) {}
+
+            // 4. 주소 정제 (호수, 층 등 상세 텍스트 분리)
+            let cleanAddr = addr.replace(/\(.*?\)/g, '').trim();
+            const roadMatch = cleanAddr.match(/([가-힣\s]+[시|군|구]\s+[가-힣\s]+[읍|면|동|로|길]\s*[\d\-]+(?:\s*번지)?)/);
+            const searchTargetAddr = roadMatch ? roadMatch[1] : cleanAddr;
+
+            // 5. 카카오 Geocoder 비동기 검색 실행 (대한민국 전국 어디나 실제 좌표로 변환)
+            if (geocoder && (searchTargetAddr || cleanAddr)) {
+                const targetQuery = searchTargetAddr || cleanAddr;
+                geocoder.addressSearch(targetQuery, function(result, status) {
+                    if (status === kakao.maps.services.Status.OK && result.length > 0) {
+                        p.lat = parseFloat(result[0].y);
+                        p.lng = parseFloat(result[0].x);
+
+                        // 캐시에 영구 저장하여 다음 로드 시 초고속 반영
+                        try {
+                            const cache = JSON.parse(localStorage.getItem('sumokto_geo_cache') || '{}');
+                            cache[addr] = { lat: p.lat, lng: p.lng };
+                            cache[targetQuery] = { lat: p.lat, lng: p.lng };
+                            localStorage.setItem('sumokto_geo_cache', JSON.stringify(cache));
+                        } catch (e) {}
+
+                        if (callback) callback(p);
+                    } else {
+                        // 정제 주소 실패 시 읍/면/동 단위로 재검색 시도
+                        const broadMatch = cleanAddr.match(/([가-힣]+[시|군|구]\s+[가-힣]+[읍|면|동])/);
+                        if (broadMatch) {
+                            geocoder.addressSearch(broadMatch[1], function(res2, status2) {
+                                if (status2 === kakao.maps.services.Status.OK && res2.length > 0) {
+                                    p.lat = parseFloat(res2[0].y);
+                                    p.lng = parseFloat(res2[0].x);
+                                } else {
+                                    fallbackPresetCoords(p, fullText);
+                                }
+                                if (callback) callback(p);
+                            });
+                        } else {
+                            fallbackPresetCoords(p, fullText);
+                            if (callback) callback(p);
+                        }
+                    }
+                });
+                return;
+            }
+
+            // 6. Geocoder 준비 전/미지원 시 프리셋 fallback
+            fallbackPresetCoords(p, fullText);
+            if (callback) callback(p);
+        }
+
+        function fallbackPresetCoords(p, fullText) {
+            let matched = null;
+            for (let key in PRESET_COORDS) {
+                if (fullText.includes(key)) {
+                    matched = PRESET_COORDS[key];
+                    break;
+                }
+            }
+            if (!matched) {
+                matched = { lat: 36.3204, lng: 127.3442 };
+            }
+            p.lat = matched.lat;
+            p.lng = matched.lng;
+        }
+
+        // 단지명 및 실제 동/호수, 카카오 Geocoder 기반 정밀 건물 중심 좌표 매핑
+        function resolveAllCoordinates(list) {
+            if (!list || list.length === 0) {
+                applyFilters();
+                return;
+            }
+
+            let pendingCount = list.length;
+            const onCoordinateResolved = () => {
+                pendingCount--;
+                if (pendingCount <= 0) {
+                    applyFilters();
+                }
+            };
+
+            list.forEach((p) => {
+                resolvePropertyCoordinates(p, () => {
+                    onCoordinateResolved();
+                });
+            });
+
+            // 캐시 또는 동기 좌표 매핑된 매물로 즉시 1차 렌더링
+            applyFilters();
+        }
+
+        // 3. 필터 적용 및 지도 동기화
+        function applyFilters() {
+            // [신규]: 분양 정보 보기 모드일 때는 분양 정보 실시간 검색 렌더링
+            if (currentViewMode === 'SUBSCRIPTION') {
+                renderSubscriptionMode();
+                return;
+            }
+
+            const query = (document.getElementById('mapSearchInput').value || '').trim().toLowerCase();
+            const price = document.getElementById('priceFilter').value;
+            const area = document.getElementById('areaFilter').value;
+            const type = document.getElementById('typeFilter').value;
+
+            filteredProperties = allProperties.filter(p => {
+                // 검색어 필터
+                if (query) {
+                    const title = (p.title || '').toLowerCase();
+                    const loc = (p.location || '').toLowerCase();
+                    const tags = (p.tags || '').toLowerCase();
+                    if (!title.includes(query) && !loc.includes(query) && !tags.includes(query)) {
+                        return false;
+                    }
+                }
+
+                // 거래유형 필터
+                if (currentDealType !== 'ALL' && p.dealType !== currentDealType) {
+                    return false;
+                }
+
+                // 매물 종류 필터
+                if (type !== 'ALL') {
+                    const subType = p.subType || p.type || '';
+                    if (!subType.includes(type)) return false;
+                }
+
+                // 가격 필터
+                const pNum = p.priceNumber || parsePriceNumber(p.price);
+                if (price === 'UNDER_3' && pNum > 30000) return false;
+                if (price === '3_TO_5' && (pNum < 30000 || pNum > 50000)) return false;
+                if (price === '5_TO_7' && (pNum < 50000 || pNum > 70000)) return false;
+                if (price === 'OVER_7' && pNum < 70000) return false;
+
+                // 면적 필터
+                const areaVal = parseFloat((p.area || '').replace(/[^0-9.]/g, '')) || 0;
+                if (area === 'SMALL' && areaVal > 59) return false;
+                if (area === 'MEDIUM_SMALL' && (areaVal < 59 || areaVal > 84)) return false;
+                if (area === 'MEDIUM' && (areaVal < 84 || areaVal > 114)) return false;
+                if (area === 'LARGE' && areaVal < 114) return false;
+
+                return true;
+            });
+
+            // 지도 마커 및 오버레이 재구성
+            renderMapMarkers();
+            updateVisibleProperties();
+        }
+
+        function parsePriceNumber(priceStr) {
+            if (!priceStr) return 0;
+            let num = 0;
+            const ukMatch = priceStr.match(/(\d+)억/);
+            const manMatch = priceStr.match(/(\d+)만/);
+            if (ukMatch) num += parseInt(ukMatch[1], 10) * 10000;
+            if (manMatch) num += parseInt(manMatch[1], 10);
+            return num || 30000;
+        }
+
+        // 가격 단축 포맷 (예: 5억 7500만 -> 5.7억)
+        function formatShortPrice(val, priceStr) {
+            if (priceStr && (priceStr.includes('보증금') || priceStr.includes('/'))) {
+                const parts = priceStr.split('/');
+                if (parts.length === 2) {
+                    const dep = parts[0].replace(/[^0-9]/g, '');
+                    const rent = parts[1].replace(/[^0-9]/g, '');
+                    return `${dep}/${rent}`;
+                }
+            }
+            const num = typeof val === 'number' ? val : parsePriceNumber(priceStr);
+            if (num >= 10000) {
+                const uk = num / 10000;
+                return (uk % 1 === 0 ? uk : uk.toFixed(1)) + '억';
+            }
+            if (num > 0) {
+                return num + '만';
+            }
+            return priceStr || '협의';
+        }
+
+        // 4. 지도 마커 및 당근 스타일 가격 오버레이 생성
+        function renderMapMarkers() {
+            if (!map || !clusterer) return;
+
+            // 기존 마커 및 오버레이 정리
+            clusterer.clear();
+            propertyOverlays.forEach(item => {
+                if (item.overlay) item.overlay.setMap(null);
+            });
+            propertyOverlays = [];
+            propertyMarkers = [];
+
+            // 투명 마커 이미지 (클러스터러용)
+            const transparentMarkerImg = new kakao.maps.MarkerImage(
+                'data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1" height="1"%3E%3C/svg%3E',
+                new kakao.maps.Size(1, 1)
+            );
+
+            filteredProperties.forEach(p => {
+                const latlng = new kakao.maps.LatLng(p.lat, p.lng);
+
+                // 클러스터러용 보이지 않는 마커 생성
+                const marker = new kakao.maps.Marker({
+                    position: latlng,
+                    image: transparentMarkerImg
+                });
+                propertyMarkers.push(marker);
+
+                // 당근부동산 스타일 커스텀 가격 오버레이 HTML 구성
+                const shortPrice = formatShortPrice(p.priceNumber, p.price);
+                
+                // 거래유형별 테마 색상 (매매: 당근주황, 전세: 블루, 월세: 에메랄드)
+                let badgeBg = 'from-[#FF6F0F] to-[#E85000]';
+                let arrowColor = '#E85000';
+                if (p.dealType === '전세') {
+                    badgeBg = 'from-[#2563EB] to-[#1D4ED8]';
+                    arrowColor = '#1D4ED8';
+                } else if (p.dealType === '월세') {
+                    badgeBg = 'from-[#059669] to-[#047857]';
+                    arrowColor = '#047857';
+                }
+
+                const overlayContent = document.createElement('div');
+                overlayContent.className = 'custom-price-marker cursor-pointer select-none group transition-transform duration-200 hover:scale-110';
+                overlayContent.id = 'marker-' + p.id;
+                overlayContent.innerHTML = `
+                    <div class="bg-gradient-to-r ${badgeBg} text-white px-2.5 py-1.2 rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.5)] border-2 border-white flex items-center gap-1">
+                        <span class="text-[10px] font-semibold opacity-90">${p.dealType || '매매'}</span>
+                        <span class="text-xs font-black tracking-tight">${shortPrice}</span>
+                    </div>
+                    <div class="w-0 h-0 border-x-4 border-x-transparent border-t-[5px] mx-auto" style="border-top-color: ${arrowColor}"></div>
+                `;
+
+                // 마커 클릭 시 해당 카드로 스크롤 & 상세 모달 오픈
+                overlayContent.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    focusProperty(p.id, true);
+                });
+
+                const overlay = new kakao.maps.CustomOverlay({
+                    position: latlng,
+                    content: overlayContent,
+                    yAnchor: 1.15,
+                    zIndex: 10
+                });
+
+                overlay.setMap(map);
+                propertyOverlays.push({ id: p.id, overlay: overlay, property: p });
+            });
+
+            // 클러스터러에 마커 추가
+            clusterer.addMarkers(propertyMarkers);
+
+            // 줌 레벨에 따라 표시/숨김
+            adjustOverlayVisibilityByZoom();
+        }
+
+        // 5. 현재 등록 매물 추출 및 좌측 리스트 최신순 동기화
+        function updateVisibleProperties() {
+            if (!map) return;
+            if (currentViewMode === 'SUBSCRIPTION') return; // 분양 정보 보기 모드일 때는 매물 목록 덮어쓰기 방지
+            const bounds = map.getBounds();
+
+            // 지도 화면 내 매물 수 계산 (하단 플로팅 뱃지용)
+            let inBoundsCount = 0;
+            if (bounds) {
+                filteredProperties.forEach(p => {
+                    if (p.lat && p.lng && bounds.contain(new kakao.maps.LatLng(p.lat, p.lng))) {
+                        inBoundsCount++;
+                    }
+                });
+            }
+
+            // [사용자 요구 100% 반영]:
+            // 좌측 매물 등록 목록은 최신 등록 순서(filteredProperties)를 훼손하지 않고 그대로 유지하여
+            // 가장 최신에 등록된 신규 매물이 무조건 맨 위에 첫 번째로 위치하도록 보장!
+            visibleProperties = [...filteredProperties];
+
+            // 매물 수 뱃지 및 사이드바 헤더 업데이트
+            const totalCount = visibleProperties.length;
+
+            const sidebarHeaderLabel = document.getElementById('sidebarHeaderLabel');
+            if (sidebarHeaderLabel) {
+                sidebarHeaderLabel.textContent = '전체 매물';
+            }
+
+            document.getElementById('sidebarCount').textContent = totalCount;
+            document.getElementById('mobileHeaderCount').textContent = totalCount;
+
+            // 지도 위 플로팅 뱃지 (지도 화면 내 매물 수 표기)
+            const mapCountTextEl = document.getElementById('mapCountText');
+            if (mapCountTextEl) mapCountTextEl.textContent = inBoundsCount > 0 ? inBoundsCount : totalCount;
+
+            const mobileFloatingCountEl = document.getElementById('mobileFloatingCount');
+            if (mobileFloatingCountEl) mobileFloatingCountEl.textContent = totalCount;
+
+            // 사이드바 및 모바일 목록 렌더링
+            renderPropertyList();
+        }
+
+        // 사이드바 & 모바일 매물 카드 렌더링
+        function renderPropertyList() {
+            const sidebarContainer = document.getElementById('propertyCardList');
+            const mobileContainer = document.getElementById('mobilePropertyList');
+            const sortVal = document.getElementById('sortSelect').value;
+
+            // 정렬 (최신등록순 선택 시 최신 등록 매물이 무조건 맨 위 첫 번째로 배치)
+            const sorted = [...visibleProperties].sort((a, b) => {
+                if (sortVal === 'PRICE_ASC') {
+                    return (a.priceNumber || parsePriceNumber(a.price)) - (b.priceNumber || parsePriceNumber(b.price));
+                }
+                if (sortVal === 'PRICE_DESC') {
+                    return (b.priceNumber || parsePriceNumber(b.price)) - (a.priceNumber || parsePriceNumber(a.price));
+                }
+                if (sortVal === 'AREA_DESC') {
+                    const aArea = parseFloat((a.area || '').replace(/[^0-9.]/g, '')) || 0;
+                    const bArea = parseFloat((b.area || '').replace(/[^0-9.]/g, '')) || 0;
+                    return bArea - aArea;
+                }
+                // 최신등록순 (LATEST): allProperties 원래 배열의 순서(최신 등록 매물이 index 0) 보장
+                const aIdx = allProperties.findIndex(item => item.id === a.id);
+                const bIdx = allProperties.findIndex(item => item.id === b.id);
+                if (aIdx !== -1 && bIdx !== -1) {
+                    return aIdx - bIdx;
+                }
+                return 0;
+            });
+
+            if (sorted.length === 0) {
+                const emptyHtml = `
+                    <div class="h-64 flex flex-col items-center justify-center text-center p-6 text-gray-400">
+                        <svg class="w-12 h-12 text-zinc-700 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        <p class="text-sm font-semibold text-gray-300">현재 지도 영역에 매물이 없습니다.</p>
+                        <p class="text-xs text-gray-500 mt-1">지도를 이동하거나 축소해보세요.</p>
+                        <button type="button" onclick="resetMapCenter()" class="mt-3 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-xs text-gold rounded-lg transition-colors">도안 중심 이동</button>
+                    </div>
+                `;
+                sidebarContainer.innerHTML = emptyHtml;
+                mobileContainer.innerHTML = emptyHtml;
+                return;
+            }
+
+            // 매물 카드 생성
+            let cardsHtml = '';
+            sorted.forEach(p => {
+                const img = p.imageUrl || (p.images && p.images[0]) || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80';
+                
+                let dealBadgeClass = 'bg-carrot text-white';
+                if (p.dealType === '전세') dealBadgeClass = 'bg-blue-600 text-white';
+                else if (p.dealType === '월세') dealBadgeClass = 'bg-emerald-600 text-white';
+
+                cardsHtml += `
+                    <div id="card-${p.id}" onclick="focusProperty('${p.id}', true)" 
+                         class="property-card bg-zinc-900/90 hover:bg-zinc-850 border border-zinc-800/90 hover:border-carrot/80 rounded-2xl p-3 cursor-pointer transition-all duration-200 flex gap-3 group relative shadow-md">
+                        <!-- 썸네일 (당근 스타일 정방형/4:3 비율) -->
+                        <div class="w-24 h-24 sm:w-28 sm:h-24 rounded-xl overflow-hidden bg-black/40 shrink-0 relative">
+                            <img src="${img}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&q=80'">
+                            <span class="absolute top-1.5 left-1.5 px-2 py-0.5 text-[10px] font-bold rounded-md ${dealBadgeClass} shadow">
+                                ${p.dealType || '매매'}
+                            </span>
+                        </div>
+                        
+                        <!-- 매물 텍스트 정보 -->
+                        <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                            <div>
+                                <div class="text-base sm:text-lg font-black text-white group-hover:text-carrot transition-colors truncate">
+                                    ${p.price}
+                                </div>
+                                <h4 class="text-xs sm:text-sm font-bold text-gray-200 truncate mt-0.5">
+                                    ${p.title}
+                                </h4>
+                                <p class="text-[11px] text-gray-400 mt-0.5 truncate">
+                                    ${p.floorType ? `<span class="text-white font-bold">${p.floorType}</span> · ` : ''}${p.area || ''} ${p.floor ? '· ' + p.floor : ''}
+                                </p>
+                            </div>
+                            
+                            <!-- 태그 / 한줄 요약 -->
+                            <div class="text-[10px] text-carrot/90 truncate font-medium">
+                                ${p.tags || '#도안신도시 #인기매물'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            sidebarContainer.innerHTML = cardsHtml;
+            mobileContainer.innerHTML = cardsHtml;
+        }
+
+        // 매물 포커스 (지도 이동 + 마커 하이라이트 + 카드 스크롤 + 당근 스타일 상세 패널 오픈 & 레이더 깜빡임)
+        function focusProperty(id, openDetail = true) {
+            activePropertyId = id;
+            const p = allProperties.find(item => item.id === id);
+            if (!p || !map) return;
+
+            // 좌측 사이드바 및 모바일 카드 하이라이트
+            document.querySelectorAll('.property-card').forEach(card => {
+                card.classList.remove('border-carrot', 'ring-2', 'ring-carrot/50', 'bg-zinc-800');
+            });
+            const targetCard = document.getElementById('card-' + id);
+            if (targetCard) {
+                targetCard.classList.add('border-carrot', 'ring-2', 'ring-carrot/50', 'bg-zinc-800');
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            // 대한민국 전국 어디든 해당 매물의 실제 좌표로 지도 확대 레벨(3) 및 부드러운 활공 이동
+            if (p.lat && p.lng) {
+                const targetPos = new kakao.maps.LatLng(p.lat, p.lng);
+                map.setLevel(3);
+                map.panTo(targetPos);
+                showBlinkingPoint(p.lat, p.lng);
+            } else {
+                resolvePropertyCoordinates(p, function(resolvedP) {
+                    if (resolvedP && resolvedP.lat && resolvedP.lng) {
+                        const targetPos = new kakao.maps.LatLng(resolvedP.lat, resolvedP.lng);
+                        map.setLevel(3);
+                        map.panTo(targetPos);
+                        showBlinkingPoint(resolvedP.lat, resolvedP.lng);
+                    }
+                });
+            }
+
+            // 당근부동산 스타일: 상세 패널 열기
+            if (openDetail) {
+                openDetailPanel(p);
+            }
+        }
+
+        // 6. 당근 스타일 깜빡이는 레이더 포인트 제어 (지도 해당 위치에 펄스 애니메이션)
+        function showBlinkingPoint(lat, lng) {
+            hideBlinkingPoint();
+            if (!map) return;
+
+            const latlng = new kakao.maps.LatLng(lat, lng);
+            const content = document.createElement('div');
+            content.className = 'radar-pulse-point pointer-events-none select-none';
+            content.innerHTML = `
+                <div class="radar-wave-1"></div>
+                <div class="radar-wave-2"></div>
+                <div class="radar-center-dot"></div>
+            `;
+
+            activePulseOverlay = new kakao.maps.CustomOverlay({
+                position: latlng,
+                content: content,
+                xAnchor: 0.5,
+                yAnchor: 0.5,
+                zIndex: 50 // 일반 마커보다 위에 표출
+            });
+            activePulseOverlay.setMap(map);
+        }
+
+        function hideBlinkingPoint() {
+            if (activePulseOverlay) {
+                activePulseOverlay.setMap(null);
+                activePulseOverlay = null;
+            }
+        }
+
+        // ===================================================
+        // [신규]: '매물 보기 ↔ 분양 정보 보기' 스위치 컨트롤 및 분양 단지 지도 연동
+        // ===================================================
+        function switchViewMode(mode) {
+            currentViewMode = mode;
+            const btnProp = document.getElementById('switchPropBtn');
+            const btnSub = document.getElementById('switchSubBtn');
+            const propFilters = document.getElementById('propertyFiltersWrapper');
+            const sortWrapper = document.getElementById('sortSelectWrapper');
+            const sidebarHeader = document.getElementById('sidebarHeaderLabel');
+
+            const propCardList = document.getElementById('propertyCardList');
+            const subCardList = document.getElementById('subscriptionCardList');
+            const mobPropList = document.getElementById('mobilePropertyList');
+            const mobSubList = document.getElementById('mobileSubscriptionList');
+
+            if (mode === 'SUBSCRIPTION') {
+                // 스위치 버튼 스타일: '분양 정보 보기' 활성화 (Blue 테마)
+                if (btnProp) {
+                    btnProp.className = 'px-2.5 sm:px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1 text-gray-400 hover:text-white cursor-pointer';
+                }
+                if (btnSub) {
+                    btnSub.className = 'px-2.5 sm:px-3 py-1 text-xs font-bold rounded-full transition-all flex items-center gap-1 bg-blue-600 text-white shadow-md cursor-pointer';
+                }
+
+                // [요청 반영]: 상단 메뉴 항목은 모두 공통 1줄로 온전하게 노출 유지 (숨김 없음)
+                const subListItems = getSubscriptionList();
+                if (sidebarHeader) sidebarHeader.textContent = '분양 단지 목록';
+                const mobHeaderLabel = document.getElementById('mobileHeaderLabel');
+                if (mobHeaderLabel) mobHeaderLabel.textContent = '분양 단지 목록';
+                const mobHeaderDot = document.getElementById('mobileHeaderDot');
+                if (mobHeaderDot) { mobHeaderDot.className = 'w-2 h-2 rounded-full bg-blue-500 animate-pulse'; }
+                const floatingLabel = document.getElementById('floatingListLabel');
+                if (floatingLabel) floatingLabel.textContent = '분양 단지 목록보기';
+                const mobileFloatingCountEl = document.getElementById('mobileFloatingCount');
+                if (mobileFloatingCountEl) mobileFloatingCountEl.textContent = subListItems.length;
+
+                // 사이드바 / 모바일 리스트 컨테이너 전환
+                if (propCardList) propCardList.classList.add('hidden');
+                if (subCardList) subCardList.classList.remove('hidden');
+                if (mobPropList) mobPropList.classList.add('hidden');
+                if (mobSubList) mobSubList.classList.remove('hidden');
+
+                // 열려있던 매물 상세 패널 닫기 및 매물 마커 숨기기
+                closeDetailPanel();
+                hideBlinkingPoint();
+                if (clusterer && typeof clusterer.clear === 'function') clusterer.clear();
+                propertyOverlays.forEach(item => {
+                    if (item.overlay) item.overlay.setVisible(false);
+                });
+                const mapBadge = document.getElementById('mapBadge');
+                if (mapBadge) mapBadge.style.setProperty('display', 'none', 'important');
+
+                // 분양 정보 카드 및 파란색 지도 마커 렌더링
+                renderSubscriptionMode();
+                if (typeof syncServerSubscriptionsMap === 'function') {
+                    syncServerSubscriptionsMap();
+                }
+
+                // [요청 반영]: '분양 정보 보기' 클릭 시 지도가 분양 단지 등록 주소 위치로 100% 확실하게 이동
+                const list = getSubscriptionList();
+                if (list.length > 0 && map) {
+                    const firstSub = list[0];
+                    resolveSubCoordinates(firstSub, function(latLng) {
+                        const isMobile = window.innerWidth < 768;
+                        map.setLevel(isMobile ? 4 : 3);
+                        if (typeof map.panTo === 'function') {
+                            map.panTo(latLng);
+                        } else {
+                            map.setCenter(latLng);
+                        }
+                        map.relayout();
+                        showBlueBlinkingPoint(latLng);
+                    });
+                }
+
+            } else {
+                // 스위치 버튼 스타일: '매물 보기' 활성화 (Carrot 테마)
+                if (btnProp) {
+                    btnProp.className = 'px-2.5 sm:px-3 py-1 text-xs font-bold rounded-full transition-all flex items-center gap-1 bg-carrot text-white shadow-md cursor-pointer';
+                }
+                if (btnSub) {
+                    btnSub.className = 'px-2.5 sm:px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1 text-gray-400 hover:text-white cursor-pointer';
+                }
+
+                // 매물 전용 필터 및 정렬 옵션 복원
+                // 매물 전용 필터 및 정렬 옵션 복원 (PC 전용 노출)
+                if (propFilters) {
+                    if (window.innerWidth >= 768) {
+                        propFilters.classList.remove('hidden');
+                    } else {
+                        propFilters.classList.add('hidden');
+                    }
+                }
+                if (sortWrapper) sortWrapper.classList.remove('hidden');
+                if (sidebarHeader) sidebarHeader.textContent = '현재 지도 영역';
+                const mobHeaderLabel = document.getElementById('mobileHeaderLabel');
+                if (mobHeaderLabel) mobHeaderLabel.textContent = '매물 목록';
+                const mobHeaderDot = document.getElementById('mobileHeaderDot');
+                if (mobHeaderDot) { mobHeaderDot.className = 'w-2 h-2 rounded-full bg-carrot animate-pulse'; }
+                const floatingLabel = document.getElementById('floatingListLabel');
+                if (floatingLabel) floatingLabel.textContent = '매물 목록보기';
+                const mobileFloatingCountEl = document.getElementById('mobileFloatingCount');
+                if (mobileFloatingCountEl) mobileFloatingCountEl.textContent = visibleProperties.length;
+                const mapBadge = document.getElementById('mapBadge');
+                if (mapBadge) mapBadge.style.removeProperty('display');
+
+                // 사이드바 / 모바일 리스트 컨테이너 전환
+                if (propCardList) propCardList.classList.remove('hidden');
+                if (subCardList) subCardList.classList.add('hidden');
+                if (mobPropList) mobPropList.classList.remove('hidden');
+                if (mobSubList) mobSubList.classList.add('hidden');
+
+                // 분양 오버레이 및 파란색 펄스 제거
+                clearSubscriptionOverlays();
+
+                // 매물 마커/오버레이 복구
+                if (clusterer && typeof clusterer.clear === 'function') {
+                    clusterer.clear();
+                    clusterer.addMarkers(propertyMarkers);
+                }
+                adjustOverlayVisibilityByZoom();
+
+                // [요청 반영]: '매물 보기' 클릭 시 지도를 등록된 매물 위치(도안동 중심)로 100% 확실하게 이동
+                if (map) {
+                    const isMobile = window.innerWidth < 768;
+                    const propTarget = isMobile 
+                        ? new kakao.maps.LatLng(36.3208, 127.3466) 
+                        : new kakao.maps.LatLng(36.3215, 127.3442);
+                    map.setCenter(propTarget);
+                    map.setLevel(3);
+                    map.relayout();
+                }
+
+                // 좌측에 등록된 매물이 즉시 보이도록 목록 동기화
+                visibleProperties = [...filteredProperties];
+                const count = visibleProperties.length;
+                document.getElementById('sidebarCount').textContent = count;
+                document.getElementById('mapCountText').textContent = count;
+                document.getElementById('mobileHeaderCount').textContent = count;
+                renderPropertyList();
+            }
+        }
+
+        // 분양 오버레이 정리
+        function clearSubscriptionOverlays() {
+            subscriptionOverlays.forEach(item => {
+                if (item.overlay) item.overlay.setMap(null);
+            });
+            subscriptionOverlays = [];
+            if (activeSubPulseOverlay) {
+                activeSubPulseOverlay.setMap(null);
+                activeSubPulseOverlay = null;
+            }
+            if (activeSubPopupOverlay) {
+                activeSubPopupOverlay.setMap(null);
+                activeSubPopupOverlay = null;
+            }
+            activeSubId = null;
+        }
+
+        // 분양 정보 카드 리스트 및 마커 렌더링
+        function renderSubscriptionMode() {
+            const list = getSubscriptionList();
+            const query = (document.getElementById('mapSearchInput').value || '').trim().toLowerCase();
+
+            const filtered = list.filter(sub => {
+                if (!query) return true;
+                const title = (sub.title || '').toLowerCase();
+                const addr = (sub.address || '').toLowerCase();
+                const tag = (sub.tag || '').toLowerCase();
+                const desc = (sub.desc || '').toLowerCase();
+                return title.includes(query) || addr.includes(query) || tag.includes(query) || desc.includes(query);
+            });
+
+            // 개수 업데이트
+            const count = filtered.length;
+            const sidebarCountEl = document.getElementById('sidebarCount');
+            if (sidebarCountEl) sidebarCountEl.textContent = count;
+            const mobileHeaderCountEl = document.getElementById('mobileHeaderCount');
+            if (mobileHeaderCountEl) mobileHeaderCountEl.textContent = count;
+            const mobileFloatingCountEl = document.getElementById('mobileFloatingCount');
+            if (mobileFloatingCountEl) mobileFloatingCountEl.textContent = count;
+            const mapCountTextEl = document.getElementById('mapCountText');
+            if (mapCountTextEl) mapCountTextEl.textContent = count;
+
+            const sidebarContainer = document.getElementById('subscriptionCardList');
+            const mobileContainer = document.getElementById('mobileSubscriptionList');
+
+            if (filtered.length === 0) {
+                const emptyHtml = `
+                    <div class="h-64 flex flex-col items-center justify-center text-center p-6 text-gray-400">
+                        <svg class="w-12 h-12 mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                        <p class="text-sm font-semibold text-gray-300">검색 조건에 맞는 분양 정보가 없습니다.</p>
+                        <p class="text-xs text-gray-500 mt-1">다른 단지명이나 검색어로 찾아보세요.</p>
+                    </div>
+                `;
+                if (sidebarContainer) sidebarContainer.innerHTML = emptyHtml;
+                if (mobileContainer) mobileContainer.innerHTML = emptyHtml;
+                clearSubscriptionOverlays();
+                return;
+            }
+
+            // 분양 정보 카드 마크업 생성 (사용자가 등록한 정보 100% 완전 출력)
+            const cardsHtml = filtered.map(sub => {
+                const isBoonYang = sub.isBoonYang;
+                // '분양중'은 골드/앰버 배지, '사전접수'는 에메랄드 배지
+                const statusBadgeBg = isBoonYang 
+                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' 
+                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+                const statusBadgeText = sub.statusBadge; // '분양중' 또는 '사전접수'
+                const thumbImg = sub.img || sub.thumbnail || 'images/view_2k.jpg';
+                const addressText = sub.specs || sub.address || '대전광역시';
+                const hpUrl = sub.homepage || sub.homepageUrl || '';
+                const ytUrl = sub.youtube || sub.youtubeUrl || '';
+                
+                const homepageBtn = hpUrl ? `
+                    <a href="${hpUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-blue-500/15 text-blue-400 hover:bg-blue-600 hover:text-white border border-blue-500/30 transition-all">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                        <span>홈페이지</span>
+                    </a>` : '';
+                const youtubeBtn = ytUrl ? `
+                    <a href="${ytUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-red-500/15 text-red-400 hover:bg-red-600 hover:text-white border border-red-500/30 transition-all">
+                        <svg class="w-3 h-3 text-red-400 group-hover:text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        <span>유튜브</span>
+                    </a>` : '';
+
+                return `
+                    <article id="subcard-${sub.id}" onclick="focusSubscription('${sub.id}', true)" 
+                             class="sub-card-item bg-zinc-900/90 hover:bg-zinc-800/95 border border-zinc-800 hover:border-blue-500/70 rounded-xl p-3.5 cursor-pointer transition-all duration-200 group shadow-md hover:shadow-blue-500/15">
+                        <!-- 썸네일 이미지 (썸네일 위 '분양중' 문구 삭제 완료) -->
+                        <div class="w-full h-36 rounded-lg overflow-hidden bg-black/60 mb-3 relative border border-zinc-800/80">
+                            <img src="${thumbImg}" alt="${sub.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.onerror=null;this.src='images/view_2k.jpg';">
+                            <div class="absolute bottom-2.5 right-2.5 bg-black/85 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-md border border-white/15">
+                                ${sub.scale || '총 998세대'}
+                            </div>
+                        </div>
+
+                        <!-- 텍스트 정보 (등록된 상세 내용 완전 출력) -->
+                        <div class="space-y-1.5">
+                            <h4 class="text-sm sm:text-base font-bold text-white group-hover:text-blue-400 transition-colors line-clamp-1">
+                                ${sub.title}
+                            </h4>
+                            <p class="text-xs text-gray-300 flex items-center gap-1 line-clamp-1" title="${addressText}">
+                                <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <span>${addressText}</span>
+                            </p>
+                            ${sub.desc ? `<p class="text-xs text-gray-400 line-clamp-2 leading-relaxed pt-0.5">${sub.desc}</p>` : ''}
+                        </div>
+
+                        <!-- 하단 링크 영역 (홈페이지 / 유튜브 바로가기, '지도 위치보기' 삭제 완료) -->
+                        ${(homepageBtn || youtubeBtn) ? `
+                        <div class="mt-3 pt-2.5 border-t border-zinc-800/90 flex items-center gap-1.5 flex-wrap">
+                            ${homepageBtn}
+                            ${youtubeBtn}
+                        </div>` : ''}
+                    </article>
+                `;
+            }).join('');
+
+            if (sidebarContainer) sidebarContainer.innerHTML = cardsHtml;
+            if (mobileContainer) mobileContainer.innerHTML = cardsHtml;
+
+            // 지도 위에 분양 단지 좌표 사전 연동 (파란 배경 말풍선 삭제 반영)
+            updateSubscriptionMarkers(filtered);
+
+            // 첫 번째 분양 항목 선택 & 지도 이동
+            if (filtered.length > 0) {
+                focusSubscription(filtered[0].id, true);
+            }
+        }
+
+        // 분양 단지 좌표 사전 연동 (사용자 요청: 파란 배경 말풍선 마커는 지도에서 완전 삭제)
+        function updateSubscriptionMarkers(list) {
+            clearSubscriptionOverlays();
+            if (!map) return;
+
+            list.forEach(sub => {
+                resolveSubCoordinates(sub, function(latLng) {
+                    sub.lat = latLng.getLat();
+                    sub.lng = latLng.getLng();
+                    // 파란 배경의 '분양중 선화동 하늘채 루시에르' 말풍선 오버레이는 삭제 요청에 따라 지도에 표출하지 않음
+                });
+            });
+        }
+
+        // 분양 주소 정밀 정제 함수 (카카오 지오코더 인식률 극대화)
+        function cleanSubscriptionAddress(rawAddr) {
+            if (!rawAddr || typeof rawAddr !== 'string') return '';
+            let addr = rawAddr.replace(/\(.*?\)/g, '')
+                              .replace(/\[.*?\]/g, '')
+                              .replace(/일원.*$/g, '')
+                              .replace(/외\s*\d+.*$/g, '')
+                              .replace(/일대.*$/g, '')
+                              .trim();
+            // 도로명/지번 패턴 추출
+            const roadMatch = addr.match(/([가-힣\s]+[시|군|구]\s+[가-힣\s]+[읍|면|동|로|길]\s*[\d\-]+(?:\s*번지)?)/);
+            if (roadMatch) return roadMatch[1].trim();
+            return addr;
+        }
+
+        // 분양 단지 실시간 주소 좌표 변환 (카카오 Geocoder 전국 연동 + sumokto_geo_cache 로컬 캐시 0.001초 응답)
+        function resolveSubCoordinates(sub, callback) {
+            if (!sub) return;
+            const fullText = ((sub.title || '') + ' ' + (sub.specs || sub.address || '')).trim();
+            const rawAddr = (sub.specs || sub.address || '').trim();
+            const cleanAddr = cleanSubscriptionAddress(rawAddr);
+
+            // 1. 기존의 잘못된 이전 기본 좌표(36.3283, 127.4208) 판별: 이전 오차 좌표는 강제 무효화하여 최신 정밀 지오코딩 수행
+            const isOldWrongCoord = (sub.lat && sub.lng && Math.abs(sub.lat - 36.3283) < 0.001 && Math.abs(sub.lng - 127.4208) < 0.001);
+
+            // 2. 이미 실시간 정밀 좌표가 지정되어 있고 이전 오차 좌표가 아닌 경우 즉시 반환
+            if (sub.lat && sub.lng && !isOldWrongCoord) {
+                callback(new kakao.maps.LatLng(sub.lat, sub.lng));
+                return;
+            }
+
+            // 3. 로컬스토리지 지오코딩 캐시(sumokto_geo_cache) 확인 (0.001초 초고속 반환)
+            try {
+                const cacheStr = localStorage.getItem('sumokto_geo_cache');
+                if (cacheStr) {
+                    const cache = JSON.parse(cacheStr);
+                    const hit = cache[rawAddr] || cache[cleanAddr];
+                    if (hit && hit.lat && hit.lng && !(Math.abs(hit.lat - 36.3283) < 0.001 && Math.abs(hit.lng - 127.4208) < 0.001)) {
+                        sub.lat = hit.lat;
+                        sub.lng = hit.lng;
+                        callback(new kakao.maps.LatLng(sub.lat, sub.lng));
+                        return;
+                    }
+                }
+            } catch (e) {}
+
+            // 4. 카카오 Geocoder 비동기 검색 실행 (대한민국 전국 어디나 실제 상세 주소로 실시간 변환)
+            const searchTargetAddr = cleanAddr || rawAddr;
+            if (geocoder && searchTargetAddr) {
+                geocoder.addressSearch(searchTargetAddr, function(result, status) {
+                    if (status === kakao.maps.services.Status.OK && result.length > 0) {
+                        sub.lat = parseFloat(result[0].y);
+                        sub.lng = parseFloat(result[0].x);
+
+                        // 캐시에 영구 저장하여 다음 접속 시 0.001초 만에 딜레이 없이 마커 즉시 생성
+                        try {
+                            const cache = JSON.parse(localStorage.getItem('sumokto_geo_cache') || '{}');
+                            cache[rawAddr] = { lat: sub.lat, lng: sub.lng };
+                            cache[cleanAddr] = { lat: sub.lat, lng: sub.lng };
+                            cache[searchTargetAddr] = { lat: sub.lat, lng: sub.lng };
+                            localStorage.setItem('sumokto_geo_cache', JSON.stringify(cache));
+                        } catch (e) {}
+
+                        // 로컬스토리지의 커스텀 분양 정보 객체에도 실시간 정밀 좌표 반영 보존
+                        try {
+                            const rawSubs = localStorage.getItem('sumokto_custom_subscriptions');
+                            if (rawSubs) {
+                                const subList = JSON.parse(rawSubs);
+                                const target = subList.find(s => s.id === sub.id || s.title === sub.title);
+                                if (target && (!target.lat || isOldWrongCoord)) {
+                                    target.lat = sub.lat;
+                                    target.lng = sub.lng;
+                                    localStorage.setItem('sumokto_custom_subscriptions', JSON.stringify(subList));
+                                }
+                            }
+                        } catch (e) {}
+
+                        callback(new kakao.maps.LatLng(sub.lat, sub.lng));
+                    } else {
+                        // 정제 지번 실패 시 읍/면/동 단위로 재검색 시도
+                        const broadMatch = searchTargetAddr.match(/([가-힣]+[시|군|구]\s+[가-힣]+[읍|면|동])/);
+                        if (broadMatch) {
+                            geocoder.addressSearch(broadMatch[1], function(res2, status2) {
+                                if (status2 === kakao.maps.services.Status.OK && res2.length > 0) {
+                                    sub.lat = parseFloat(res2[0].y);
+                                    sub.lng = parseFloat(res2[0].x);
+                                    callback(new kakao.maps.LatLng(sub.lat, sub.lng));
+                                } else {
+                                    fallbackCoord();
+                                }
+                            });
+                        } else {
+                            fallbackCoord();
+                        }
+                    }
+                });
+                return;
+            }
+
+            // 5. Geocoder 준비 전/미지원 시 프리셋 fallback
+            fallbackCoord();
+
+            function fallbackCoord() {
+                let matched = null;
+                for (let key in PRESET_SUB_COORDS) {
+                    if (fullText.includes(key)) {
+                        matched = PRESET_SUB_COORDS[key];
+                        break;
+                    }
+                }
+                if (!matched) {
+                    matched = { lat: 36.33481, lng: 127.41979 }; // 대전 선화동 95-3 하늘채 실측 정밀 좌표
+                }
+                sub.lat = matched.lat;
+                sub.lng = matched.lng;
+                callback(new kakao.maps.LatLng(matched.lat, matched.lng));
+            }
+        }
+
+        // 분양 단지 전체 주소 실시간 지오코딩 일괄 해석
+        function resolveAllSubCoordinates(list, callback) {
+            if (!list || list.length === 0) {
+                if (callback) callback();
+                return;
+            }
+            let pending = list.length;
+            const onDone = () => {
+                pending--;
+                if (pending <= 0 && callback) callback();
+            };
+            list.forEach(sub => {
+                resolveSubCoordinates(sub, () => onDone());
+            });
+        }
+
+        // 분양 단지 선택 시: 지도가 대한민국 어디든 실제 주소 위치로 레벨 3~4 확대와 함께 부드럽게 활공 이동(map.panTo)하고 파란색 레이더 펄스 표기
+        function focusSubscription(subId, panTo = true) {
+            activeSubId = subId;
+            const list = cachedSubscriptions.length > 0 ? cachedSubscriptions : getSubscriptionList();
+            const sub = list.find(s => s.id === subId) || list[0];
+            if (!sub) return;
+
+            // 사이드바 및 모바일 카드 활성화 스타일 (Blue 테두리 및 은은한 배경)
+            document.querySelectorAll('.sub-card-item').forEach(card => {
+                card.classList.remove('border-blue-500', 'ring-2', 'ring-blue-500/50', 'bg-blue-950/20');
+            });
+            const targetCard = document.getElementById('subcard-' + subId);
+            if (targetCard) {
+                targetCard.classList.add('border-blue-500', 'ring-2', 'ring-blue-500/50', 'bg-blue-950/20');
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            // 좌표 확정 후 지도 부드러운 활공 이동(map.panTo) 및 파란색 레이더 펄스 표기
+            resolveSubCoordinates(sub, function(latLng) {
+                if (map) {
+                    const isMobile = window.innerWidth < 768;
+                    map.setLevel(isMobile ? 4 : 3);
+                    if (panTo && typeof map.panTo === 'function') {
+                        map.panTo(latLng);
+                    } else {
+                        map.setCenter(latLng);
+                    }
+                    map.relayout();
+                }
+
+                // 파란색 레이더 펄스 오버레이 표출 (정확한 위치 안내)
+                showBlueBlinkingPoint(latLng);
+            });
+        }
+
+        // 파란색 깜빡이는 레이더 펄스 오버레이 (요청사항 100% 반영)
+        function showBlueBlinkingPoint(latLng) {
+            if (activeSubPulseOverlay) {
+                activeSubPulseOverlay.setMap(null);
+                activeSubPulseOverlay = null;
+            }
+            if (!map) return;
+
+            const content = document.createElement('div');
+            content.className = 'blue-radar-pulse-point pointer-events-none select-none';
+            content.innerHTML = `
+                <div class="blue-radar-wave-1"></div>
+                <div class="blue-radar-wave-2"></div>
+                <div class="blue-center-dot"></div>
+            `;
+
+            activeSubPulseOverlay = new kakao.maps.CustomOverlay({
+                position: latLng,
+                content: content,
+                xAnchor: 0.5,
+                yAnchor: 0.5,
+                zIndex: 40
+            });
+            activeSubPulseOverlay.setMap(map);
+        }
+
+        // 선택된 분양 단지 상단 파란색 강조 팝업 오버레이
+        function showBlueSubPopup(latLng, sub) {
+            if (activeSubPopupOverlay) {
+                activeSubPopupOverlay.setMap(null);
+                activeSubPopupOverlay = null;
+            }
+            if (!map) return;
+
+            const statusBadgeClass = sub.isBoonYang 
+                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' 
+                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+
+            const addressText = sub.specs || sub.address || '대전광역시';
+            const scaleText = sub.scale ? ` (${sub.scale})` : '';
+
+            const content = document.createElement('div');
+            content.className = 'pointer-events-auto select-none transition-all duration-300';
+            content.innerHTML = `
+                <div class="bg-zinc-950/95 border-2 border-blue-500 rounded-xl px-3.5 py-2 shadow-[0_8px_25px_rgba(37,99,235,0.65)] text-white flex items-center gap-2.5 backdrop-blur-md">
+                    <div class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping"></div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs font-black text-blue-400">${sub.title}</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded font-bold ${statusBadgeClass}">${sub.statusBadge}</span>
+                        </div>
+                        <p class="text-[10px] text-gray-300">${addressText}${scaleText}</p>
+                    </div>
+                </div>
+                <div class="w-0 h-0 border-x-6 border-x-transparent border-t-[8px] mx-auto border-t-blue-500"></div>
+            `;
+
+            activeSubPopupOverlay = new kakao.maps.CustomOverlay({
+                position: latLng,
+                content: content,
+                yAnchor: 1.25,
+                zIndex: 45
+            });
+            activeSubPopupOverlay.setMap(map);
+        }
+
+        // 7. 당근부동산 스타일 상세 정보 패널 열기 (PC: 좌측 매물 목록 우측 지도 위 플로팅 / 모바일: 바텀시트)
+        function openDetailPanel(p) {
+            if (!p) return;
+
+            // [PC 당근 스타일 플로팅 상세 패널 데이터 채우기]
+            const deskDetail = document.getElementById('desktopDetailPanel');
+            if (deskDetail) {
+                // 단지명 추출 (예: '도안아이파크', '도안수목토')
+                let complexShort = '도안신도시 아파트';
+                if (p.title.includes('아이파크')) complexShort = '대전도안아이파크';
+                else if (p.title.includes('수목토')) complexShort = '도안수목토아파트';
+                else if (p.title.includes('힐스테이트')) complexShort = '힐스테이트도안';
+
+                const complexEl = document.getElementById('deskComplexName');
+                if (complexEl) complexEl.textContent = complexShort;
+
+                const deskIdEl = document.getElementById('deskDetailId');
+                if (deskIdEl) deskIdEl.textContent = p.id || '';
+
+                const deskPriceEl = document.getElementById('deskPrice');
+                if (deskPriceEl) deskPriceEl.textContent = p.price || '';
+
+                const deskTitleEl = document.getElementById('deskTitle');
+                if (deskTitleEl) deskTitleEl.textContent = p.title || '';
+
+                const deskLocSpan = document.getElementById('deskLocation')?.querySelector('span');
+                if (deskLocSpan) deskLocSpan.textContent = p.location || '대전광역시 서구 도안동';
+
+                const deskFloorTypeEl = document.getElementById('deskFloorType');
+                if (deskFloorTypeEl) {
+                    deskFloorTypeEl.textContent = p.floorType || '-';
+                    deskFloorTypeEl.style.setProperty('color', '#ffffff', 'important');
+                    deskFloorTypeEl.className = "text-xs text-white font-bold block truncate";
+                }
+
+                const deskAreaEl = document.getElementById('deskArea');
+                if (deskAreaEl) deskAreaEl.textContent = p.area || '-';
+
+                const deskFloorEl = document.getElementById('deskFloor');
+                if (deskFloorEl) deskFloorEl.textContent = p.floor || '-';
+
+                const deskTypeEl = document.getElementById('deskType');
+                if (deskTypeEl) deskTypeEl.textContent = p.subType || p.type || '아파트';
+
+                const deskTagsEl = document.getElementById('deskTags');
+                if (deskTagsEl) deskTagsEl.textContent = p.tags || '#도안신도시';
+
+                const deskDescEl = document.getElementById('deskDesc');
+                if (deskDescEl) deskDescEl.textContent = p.description || '상세 설명이 등록되지 않았습니다. 전화로 문의해주세요.';
+
+                // 거래유형 배지
+                const deskBadge = document.getElementById('deskDetailDealBadge');
+                if (deskBadge) {
+                    deskBadge.textContent = p.dealType || '매매';
+                    if (p.dealType === '전세') deskBadge.className = 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-blue-600 text-white';
+                    else if (p.dealType === '월세') deskBadge.className = 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-emerald-600 text-white';
+                    else deskBadge.className = 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-carrot text-white';
+                }
+
+                // PC 플로팅 상세 패널 표시 (좌측 매물 목록은 절대 숨기지 않음!)
+                deskDetail.classList.remove('hidden');
+                deskDetail.classList.add('flex');
+            }
+
+            // [모바일 바텀시트 데이터 채우기]
+            const mobDetail = document.getElementById('mobileDetailView');
+            const mobList = document.getElementById('mobileListView');
+            if (mobDetail && mobList) {
+                const mobPriceEl = document.getElementById('mobPrice');
+                if (mobPriceEl) mobPriceEl.textContent = p.price || '';
+
+                const mobTitleEl = document.getElementById('mobTitle');
+                if (mobTitleEl) mobTitleEl.textContent = p.title || '';
+
+                const mobLocSpan = document.getElementById('mobLocation')?.querySelector('span');
+                if (mobLocSpan) mobLocSpan.textContent = p.location || '대전광역시 서구 도안동';
+
+                const mobFloorTypeEl = document.getElementById('mobFloorType');
+                if (mobFloorTypeEl) {
+                    mobFloorTypeEl.textContent = p.floorType || '-';
+                    mobFloorTypeEl.style.setProperty('color', '#ffffff', 'important');
+                    mobFloorTypeEl.className = "text-[11px] text-white font-bold block truncate";
+                }
+
+                const mobAreaEl = document.getElementById('mobArea');
+                if (mobAreaEl) mobAreaEl.textContent = p.area || '-';
+
+                const mobFloorEl = document.getElementById('mobFloor');
+                if (mobFloorEl) mobFloorEl.textContent = p.floor || '-';
+
+                const mobTypeEl = document.getElementById('mobType');
+                if (mobTypeEl) mobTypeEl.textContent = p.subType || p.type || '아파트';
+
+                const mobTagsEl = document.getElementById('mobTags');
+                if (mobTagsEl) mobTagsEl.textContent = p.tags || '#도안신도시';
+
+                const mobDescEl = document.getElementById('mobDesc');
+                if (mobDescEl) mobDescEl.textContent = p.description || '상세 설명이 등록되지 않았습니다.';
+
+                const mobBadge = document.getElementById('mobDetailDealBadge');
+                if (mobBadge) {
+                    mobBadge.textContent = p.dealType || '매매';
+                    if (p.dealType === '전세') mobBadge.className = 'px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-600 text-white';
+                    else if (p.dealType === '월세') mobBadge.className = 'px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-600 text-white';
+                    else mobBadge.className = 'px-2 py-0.5 text-[10px] font-bold rounded-md bg-carrot text-white';
+                }
+
+                // 모바일 뷰 전환 & 바텀시트 펼치기
+                mobList.classList.add('hidden');
+                mobDetail.classList.remove('hidden');
+                mobDetail.classList.add('flex');
+                if (typeof expandMobileSheet === 'function') {
+                    expandMobileSheet();
+                }
+            }
+
+            // [이미지 갤러리 슬라이더: 평면도 이미지를 배제하고 등록한 실제 사진들만 표시]
+            currentDetailImages = [];
+            
+            // 평면도 도면 이미지 판별 함수 (사진 슬라이더에서 도면 제외용)
+            const isPlanImage = (url) => {
+                if (!url || typeof url !== 'string') return false;
+                const u = url.toLowerCase();
+                return u.includes('plan') || u.includes('type-plan') || u.includes('a-type') || u.includes('b-type') || u.includes('c-type') || u.includes('d-type') || u.includes('도면') || u.includes('평면');
+            };
+
+            // 1) p.images 후보 추출 (평면도 도면 제외, 등록한 실제 사진만 포함)
+            let candidateImages = p.images;
+            if (typeof candidateImages === 'string') {
+                try {
+                    candidateImages = JSON.parse(candidateImages);
+                } catch(e) {
+                    candidateImages = [candidateImages];
+                }
+            }
+            if (Array.isArray(candidateImages)) {
+                candidateImages.forEach(img => {
+                    if (typeof img === 'string' && img.trim().length > 0 && !isPlanImage(img.trim())) {
+                        currentDetailImages.push(img.trim());
+                    }
+                });
+            }
+
+            // 2) p.imageUrl 후보 추출 (평면도 도면 제외)
+            if (p.imageUrl) {
+                if (Array.isArray(p.imageUrl)) {
+                    p.imageUrl.forEach(img => {
+                        if (typeof img === 'string' && img.trim().length > 0 && !isPlanImage(img.trim()) && !currentDetailImages.includes(img.trim())) {
+                            currentDetailImages.push(img.trim());
+                        }
+                    });
+                } else if (typeof p.imageUrl === 'string' && p.imageUrl.trim().length > 0 && !isPlanImage(p.imageUrl.trim())) {
+                    const u = p.imageUrl.trim();
+                    if (!currentDetailImages.includes(u)) {
+                        currentDetailImages.push(u);
+                    }
+                }
+            }
+
+            // [사용자 요구 100% 반영]: 평면도(p.mapImageUrl)는 사진 슬라이더에 추가하지 않음 (등록 사진 전용)
+
+            // 3) 그래도 사진이 없으면 아파트별 고화질 로컬 사진 기본 제공
+            if (currentDetailImages.length === 0) {
+                if (p.title && p.title.includes('아이파크')) {
+                    currentDetailImages = ['images/view_2k.jpg', 'images/preview_complex.jpg', 'images/단지조감도_2K.jpg'];
+                } else {
+                    currentDetailImages = ['images/preview_complex.jpg', 'images/view_2k.jpg', 'images/bird_view_2k.jpg'];
+                }
+            }
+            currentDetailImgIdx = 0;
+            updateDetailGallery();
+
+            // 대한민국 전국 어디든 해당 매물의 실제 좌표로 지도 확대 레벨(3) 및 부드러운 활공 이동
+            if (p.lat && p.lng) {
+                const targetPos = new kakao.maps.LatLng(p.lat, p.lng);
+                map.setLevel(3);
+                map.panTo(targetPos);
+                showBlinkingPoint(p.lat, p.lng);
+            } else {
+                resolvePropertyCoordinates(p, function(resolvedP) {
+                    if (resolvedP && resolvedP.lat && resolvedP.lng) {
+                        const targetPos = new kakao.maps.LatLng(resolvedP.lat, resolvedP.lng);
+                        map.setLevel(3);
+                        map.panTo(targetPos);
+                        showBlinkingPoint(resolvedP.lat, resolvedP.lng);
+                    }
+                });
+            }
+        }
+
+        // 상세 정보 패널 닫기 (PC: 플로팅 창 닫기 / 모바일: 바텀시트 목록 복귀 / 깜빡이는 레이더 포인트 제거)
+        function closeDetailPanel() {
+            // PC 전용 플로팅 상세 패널 닫기 (좌측 매물 목록은 항상 유지됨)
+            const deskDetail = document.getElementById('desktopDetailPanel');
+            if (deskDetail) {
+                deskDetail.classList.add('hidden');
+                deskDetail.classList.remove('flex');
+            }
+
+            // 모바일 바텀시트 복귀
+            const mobDetail = document.getElementById('mobileDetailView');
+            const mobList = document.getElementById('mobileListView');
+            if (mobDetail && mobList) {
+                mobDetail.classList.add('hidden');
+                mobDetail.classList.remove('flex');
+                mobList.classList.remove('hidden');
+            }
+
+            // 지도 상 깜빡이는 레이더 포인트 제거
+            hideBlinkingPoint();
+            activePropertyId = null;
+
+            // 선택 하이라이트 제거
+            document.querySelectorAll('.property-card').forEach(card => {
+                card.classList.remove('border-carrot', 'ring-2', 'ring-carrot/50', 'bg-zinc-800');
+            });
+        }
+
+        // 갤러리 이미지 슬라이더 업데이트 (PC + 모바일 동시 동기화, 등록 사진 전용)
+        function updateDetailGallery() {
+            const currentImg = currentDetailImages[currentDetailImgIdx] || '';
+            const counterText = `${currentDetailImgIdx + 1} / ${currentDetailImages.length}`;
+            const isSingle = currentDetailImages.length <= 1;
+
+            const fallbackImg = 'images/view_2k.jpg';
+
+            // PC 플로팅 상세 패널
+            const deskImg = document.getElementById('deskMainImg');
+            const deskCounter = document.getElementById('deskImgCounter');
+            const deskPrev = document.getElementById('deskPrevBtn');
+            const deskNext = document.getElementById('deskNextBtn');
+            if (deskImg) {
+                deskImg.src = currentImg || fallbackImg;
+                deskImg.onerror = function() {
+                    this.onerror = function() {
+                        this.onerror = null;
+                        this.src = 'images/preview_complex.jpg';
+                    };
+                    this.src = fallbackImg;
+                };
+            }
+            if (deskCounter) deskCounter.textContent = counterText;
+            if (deskPrev && deskNext) {
+                if (isSingle) {
+                    deskPrev.classList.add('hidden');
+                    deskNext.classList.add('hidden');
+                } else {
+                    deskPrev.classList.remove('hidden');
+                    deskNext.classList.remove('hidden');
+                }
+            }
+
+            // Mobile 바텀시트
+            const mobImg = document.getElementById('mobMainImg');
+            const mobCounter = document.getElementById('mobImgCounter');
+            const mobPrev = document.getElementById('mobPrevBtn');
+            const mobNext = document.getElementById('mobNextBtn');
+            if (mobImg) {
+                mobImg.src = currentImg || fallbackImg;
+                mobImg.onerror = function() {
+                    this.onerror = function() {
+                        this.onerror = null;
+                        this.src = 'images/preview_complex.jpg';
+                    };
+                    this.src = fallbackImg;
+                };
+            }
+            if (mobCounter) mobCounter.textContent = counterText;
+            if (mobPrev && mobNext) {
+                if (isSingle) {
+                    mobPrev.classList.add('hidden');
+                    mobNext.classList.add('hidden');
+                } else {
+                    mobPrev.classList.remove('hidden');
+                    mobNext.classList.remove('hidden');
+                }
+            }
+        }
+
+        function slideDeskImg(dir) {
+            if (currentDetailImages.length <= 1) return;
+            currentDetailImgIdx += dir;
+            if (currentDetailImgIdx >= currentDetailImages.length) currentDetailImgIdx = 0;
+            if (currentDetailImgIdx < 0) currentDetailImgIdx = currentDetailImages.length - 1;
+            updateDetailGallery();
+        }
+
+        function slideMobImg(dir) {
+            slideDeskImg(dir);
+        }
+
+        // 매물 공유 링크 복사
+        function shareCurrentProperty() {
+            if (!activePropertyId) return;
+            const shareUrl = window.location.origin + window.location.pathname + '?id=' + activePropertyId;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert('매물 링크가 클립보드에 복사되었습니다.\n' + shareUrl);
+                }).catch(() => {
+                    prompt('아래 매물 링크를 복사해주세요:', shareUrl);
+                });
+            } else {
+                prompt('아래 매물 링크를 복사해주세요:', shareUrl);
+            }
+        }
+
+        // 모바일 바텀시트 제어
+        let isSheetExpanded = false;
+        function toggleMobileSheet() {
+            if (isSheetExpanded) {
+                collapseMobileSheet();
+            } else {
+                expandMobileSheet();
+            }
+        }
+
+        function expandMobileSheet() {
+            const sheet = document.getElementById('mobileBottomSheet');
+            const toggleText = document.getElementById('mobileSheetToggleText');
+            const floatingBtn = document.getElementById('mobileListFloatingBtn');
+            if (!sheet) return;
+            sheet.classList.remove('bottom-sheet-collapsed', 'bottom-sheet-peek');
+            sheet.classList.add('bottom-sheet-expanded');
+            isSheetExpanded = true;
+            if (toggleText) toggleText.textContent = '지도보기 ▼';
+            if (floatingBtn) floatingBtn.classList.add('hidden');
+        }
+
+        function collapseMobileSheet() {
+            const sheet = document.getElementById('mobileBottomSheet');
+            const toggleText = document.getElementById('mobileSheetToggleText');
+            const floatingBtn = document.getElementById('mobileListFloatingBtn');
+            if (!sheet) return;
+            sheet.classList.remove('bottom-sheet-expanded', 'bottom-sheet-peek');
+            sheet.classList.add('bottom-sheet-collapsed');
+            isSheetExpanded = false;
+            if (toggleText) toggleText.textContent = '전체 목록 펼치기 ▲';
+            if (floatingBtn) floatingBtn.classList.remove('hidden');
+        }
+
+        // 8. 필터 제어 함수
+        function setDealTypeFilter(type) {
+            currentDealType = type;
+            document.querySelectorAll('.filter-deal-btn').forEach(btn => {
+                btn.className = 'filter-deal-btn px-2.5 py-1 text-xs font-medium rounded-full text-gray-400 hover:text-white transition-all';
+            });
+            const activeBtn = document.getElementById('filter-deal-' + type);
+            if (activeBtn) {
+                activeBtn.className = 'filter-deal-btn px-2.5 py-1 text-xs font-semibold rounded-full bg-carrot text-white shadow transition-all';
+            }
+            applyFilters();
+
+            // 거래유형 선택 시(예: '월세'), 해당 매물이 현재 지도 화면 밖에 있으면 첫 번째 매물 위치로 자동 안내
+            if (type !== 'ALL' && filteredProperties.length > 0) {
+                const first = filteredProperties[0];
+                if (first.lat && first.lng && map) {
+                    const bounds = map.getBounds();
+                    if (!bounds || !bounds.contain(new kakao.maps.LatLng(first.lat, first.lng))) {
+                        focusProperty(first.id, false);
+                    }
+                }
+            }
+        }
+
+        function resetAllFilters() {
+            document.getElementById('mapSearchInput').value = '';
+            document.getElementById('priceFilter').value = 'ALL';
+            document.getElementById('areaFilter').value = 'ALL';
+            document.getElementById('typeFilter').value = 'ALL';
+            setDealTypeFilter('ALL');
+        }
+
+        function initFilterEvents() {
+            const searchInput = document.getElementById('mapSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(applyFilters, 250));
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        applyFilters();
+                        // 첫 번째 매물로 이동
+                        if (filteredProperties.length > 0) {
+                            focusProperty(filteredProperties[0].id, false);
+                        }
+                    }
+                });
+            }
+
+            // ESC 키 상세 패널 닫기
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeDetailPanel();
+            });
+        }
+
+        // 9. 지도 컨트롤러 함수들
+        function zoomIn() {
+            if (map) map.setLevel(map.getLevel() - 1, { animate: true });
+        }
+        function zoomOut() {
+            if (map) map.setLevel(map.getLevel() + 1, { animate: true });
+        }
+        function resetMapCenter() {
+            if (map) {
+                const isMobile = window.innerWidth < 768;
+                const target = isMobile 
+                    ? new kakao.maps.LatLng(36.3208, 127.3466) 
+                    : new kakao.maps.LatLng(36.3215, 127.3442);
+                map.setCenter(target);
+                map.setLevel(3);
+                updateVisibleProperties();
+            }
+        }
+        function moveToCurrentLocation() {
+            if (!navigator.geolocation) {
+                alert('현재 브라우저에서는 위치 서비스를 지원하지 않습니다.');
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const loc = new kakao.maps.LatLng(lat, lng);
+                    if (map) {
+                        map.setLevel(4, { animate: true });
+                        map.panTo(loc);
+
+                        // 내 위치 마커 표시
+                        new kakao.maps.CustomOverlay({
+                            map: map,
+                            position: loc,
+                            content: `
+                                <div class="w-5 h-5 rounded-full bg-blue-500 border-2 border-white shadow-lg animate-ping"></div>
+                                <div class="w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow-md relative -top-4.5 left-0.5"></div>
+                            `,
+                            yAnchor: 1
+                        });
+                    }
+                },
+                function(err) {
+                    alert('현재 위치 정보를 가져올 수 없습니다. 브라우저 위치 권한을 확인해주세요.');
+                },
+                { timeout: 7000 }
+            );
+        }
+
+        // 10. 지도 타입 전환 (일반지도 ROADMAP ↔ 위성사진 HYBRID)
+        let currentMapTypeId = 'ROADMAP';
+
+        function setMapType(type) {
+            if (!map) return;
+            const mapEl = document.getElementById('map');
+            const btnRoad = document.getElementById('btnMapTypeRoadmap');
+            const btnHyb = document.getElementById('btnMapTypeHybrid');
+
+            if (type === 'HYBRID') {
+                currentMapTypeId = 'HYBRID';
+                map.setMapTypeId(kakao.maps.MapTypeId.HYBRID);
+                if (mapEl) mapEl.classList.remove('dark-map-tiles');
+
+                if (btnRoad && btnHyb) {
+                    btnRoad.className = 'px-2.5 py-1 text-xs font-medium rounded-lg text-gray-400 hover:text-white transition-all duration-200 flex items-center gap-1';
+                    btnHyb.className = 'px-2.5 py-1 text-xs font-bold rounded-lg transition-all duration-200 bg-carrot text-white shadow-sm flex items-center gap-1';
+                }
+            } else {
+                currentMapTypeId = 'ROADMAP';
+                map.setMapTypeId(kakao.maps.MapTypeId.ROADMAP);
+                if (mapEl) mapEl.classList.add('dark-map-tiles');
+
+                if (btnRoad && btnHyb) {
+                    btnRoad.className = 'px-2.5 py-1 text-xs font-bold rounded-lg transition-all duration-200 bg-carrot text-white shadow-sm flex items-center gap-1';
+                    btnHyb.className = 'px-2.5 py-1 text-xs font-medium rounded-lg text-gray-400 hover:text-white transition-all duration-200 flex items-center gap-1';
+                }
+            }
+        }
+
+        // 디바운스 유틸
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // 모바일 PWA 및 서비스 워커 최신 캐시 강제 갱신
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (var r of registrations) {
+                    r.update();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
