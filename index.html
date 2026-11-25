@@ -253,6 +253,8 @@
     </style>
 </head>
 <body class="bg-dark-bg text-white antialiased overflow-x-hidden">
+    <!-- 앵커 호환용 상단 앵커 포인트 -->
+    <div id="consulting" class="absolute top-0 left-0 w-0 h-0 pointer-events-none"></div>
 
     <!-- ========================================== -->
     <!-- 1. Header / Navigation                     -->
@@ -629,9 +631,6 @@
             </div>
         </div>
     </section>
-
-    <!-- 앵커 호환용 앵커 포인트 -->
-    <div id="consulting" class="scroll-mt-20"></div>
 
     <!-- ========================================== -->
     <!-- 6. Footer                                  -->
@@ -1420,6 +1419,15 @@
                     isConsultingWheelLocked = false;
                 }
             }
+            // 고객 등록 종료 시 메인 화면(홈 최상단)으로 부드럽게 스크롤 및 URL 해시 정리
+            if (window.location.hash === '#consulting') {
+                try {
+                    history.replaceState(null, document.title, window.location.pathname + window.location.search);
+                } catch (e) {
+                    window.location.hash = '';
+                }
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         function openQrModal() {
             const m = document.getElementById('qrModal');
@@ -1477,11 +1485,13 @@
         });
         window.addEventListener('DOMContentLoaded', function() {
             if (window.location.hash === '#consulting') {
-                setTimeout(openConsultingModal, 250);
+                window.scrollTo(0, 0);
+                setTimeout(openConsultingModal, 150);
             }
         });
         window.addEventListener('hashchange', function() {
             if (window.location.hash === '#consulting') {
+                window.scrollTo(0, 0);
                 openConsultingModal();
             }
         });
