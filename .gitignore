@@ -32,4 +32,8 @@ Thumbs.db
 
 # Scratch & temporary files
 scratch/
+
+# 임시 테스트 및 검증용 스크린샷 제외
 scratch_*.jpg
+scratch_*.png
+scratch_*.webp

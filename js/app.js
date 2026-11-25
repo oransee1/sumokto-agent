@@ -2494,7 +2494,11 @@ const UI = {
     if (areaInput && targetPropertyTitle) {
       areaInput.value = `[매물문의] ${targetPropertyTitle}`;
     }
-    document.getElementById('consulting').scrollIntoView({ behavior: 'smooth' });
+    if (typeof openConsultingModal === 'function') {
+      openConsultingModal();
+    } else {
+      document.getElementById('consulting')?.scrollIntoView({ behavior: 'smooth' });
+    }
     this.showToast(`'${targetPropertyTitle}' 문의 양식으로 이동합니다.`);
   },
 
@@ -2573,6 +2577,9 @@ const UI = {
         // 성공 시 완료 안내 및 폼 리셋
         this.showToast('✅ 상담 신청이 완료되었습니다! 담당자 카카오톡으로 실시간 알림이 발송되었습니다.', 'success');
         document.getElementById('customerRegisterForm')?.reset();
+        if (typeof closeConsultingModal === 'function') {
+          setTimeout(closeConsultingModal, 1500);
+        }
       } else {
         // 카카오 API 설정 미완료(NOT_CONFIGURED) 또는 기타 전송 실패 시
         console.warn('Kakao notification fallback:', resData);
