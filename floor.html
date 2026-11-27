@@ -556,9 +556,9 @@
                         </div>
                     </div>
 
-                    <!-- 하단 썸네일 스트립 (11개 가로 스크롤 및 중앙 정렬 대응) -->
+                    <!-- 하단 썸네일 스트립 (모바일: 1번 빨간 테두리 썸네일부터 즉시 노출 및 부드러운 가로 스크롤 / 데스크톱: 중앙 정렬) -->
                     <div class="w-full">
-                        <div class="flex items-center justify-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sub-custom-scrollbar">
+                        <div id="bTypeThumbContainer" class="flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto px-1 sm:px-0 pb-1.5 pt-1 sub-custom-scrollbar scroll-smooth">
                             <button type="button" onclick="changeBTypePhoto(1)" class="b-type-thumb shrink-0 w-14 sm:w-18 aspect-[16/9] rounded-lg overflow-hidden border-2 border-red-500 ring-2 ring-red-500/50 shadow-lg focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-105" data-idx="1" title="B-Type 사진 1">
                                 <img src="images/b_type/1_2K.jpg" alt="B-Type 썸네일 1" class="w-full h-full object-cover">
                             </button>
@@ -621,9 +621,9 @@
                         </div>
                     </div>
 
-                    <!-- 하단 썸네일 스트립 (11개 가로 스크롤 및 중앙 정렬 대응) -->
+                    <!-- 하단 썸네일 스트립 (모바일: 1번 빨간 테두리 썸네일부터 즉시 노출 및 부드러운 가로 스크롤 / 데스크톱: 중앙 정렬) -->
                     <div class="w-full">
-                        <div class="flex items-center justify-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sub-custom-scrollbar">
+                        <div id="cTypeThumbContainer" class="flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto px-1 sm:px-0 pb-1.5 pt-1 sub-custom-scrollbar scroll-smooth">
                             <button type="button" onclick="changeCTypePhoto(1)" class="c-type-thumb shrink-0 w-14 sm:w-18 aspect-[16/9] rounded-lg overflow-hidden border-2 border-red-500 ring-2 ring-red-500/50 shadow-lg focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-105" data-idx="1" title="C-Type 사진 1">
                                 <img src="images/c-type/1_2K.jpg" alt="C-Type 썸네일 1" class="w-full h-full object-cover">
                             </button>
@@ -864,6 +864,17 @@
                 }
             });
 
+            // 세대 사진 뷰 진입 시 1번 사진 및 스크롤 위치 초기화 (모바일에서 1번 빨간 테두리 사진 즉시 노출)
+            if (typeKey === 'B') {
+                changeBTypePhoto(1);
+                const c = document.getElementById('bTypeThumbContainer');
+                if (c) c.scrollLeft = 0;
+            } else if (typeKey === 'C') {
+                changeCTypePhoto(1);
+                const c = document.getElementById('cTypeThumbContainer');
+                if (c) c.scrollLeft = 0;
+            }
+
             // 좌측 헤더 및 스펙 패널 텍스트 업데이트
             const titleEl = document.getElementById('panelTypeTitle');
             const householdEl = document.getElementById('panelHouseholdBadge');
@@ -945,6 +956,12 @@
                 const btnIdx = parseInt(btn.getAttribute('data-idx'));
                 if (btnIdx === idx) {
                     btn.className = 'b-type-thumb shrink-0 w-14 sm:w-18 aspect-[16/9] rounded-lg overflow-hidden border-2 border-red-500 ring-2 ring-red-500/50 shadow-lg focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-105';
+                    if (idx === 1) {
+                        const c = document.getElementById('bTypeThumbContainer');
+                        if (c) c.scrollLeft = 0;
+                    } else if (typeof btn.scrollIntoView === 'function') {
+                        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }
                 } else {
                     btn.className = 'b-type-thumb shrink-0 w-14 sm:w-18 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-red-500/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90';
                 }
@@ -1003,6 +1020,12 @@
                 const btnIdx = parseInt(btn.getAttribute('data-idx'));
                 if (btnIdx === idx) {
                     btn.className = 'c-type-thumb shrink-0 w-14 sm:w-18 aspect-[16/9] rounded-lg overflow-hidden border-2 border-red-500 ring-2 ring-red-500/50 shadow-lg focus:outline-none transition-all duration-150 cursor-pointer opacity-100 scale-105';
+                    if (idx === 1) {
+                        const c = document.getElementById('cTypeThumbContainer');
+                        if (c) c.scrollLeft = 0;
+                    } else if (typeof btn.scrollIntoView === 'function') {
+                        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }
                 } else {
                     btn.className = 'c-type-thumb shrink-0 w-14 sm:w-18 aspect-[16/9] rounded-lg overflow-hidden border border-zinc-700 hover:border-red-500/60 shadow-sm focus:outline-none transition-all duration-150 cursor-pointer opacity-50 hover:opacity-90';
                 }
