@@ -398,11 +398,12 @@ function updateSubscriptionAdminUI() {
         }
     }
 
-    // 모달 헤더에 '관계자 로그인' 간편 진입 버튼 관리 (floor.html, map.html 등 어느 페이지에서나 원클릭 인증 지원)
+    // 모달 헤더에 '관계자 로그인' 간편 진입 버튼 관리 (PC 데스크톱에서만 노출, 모바일은 100% 일반 모드만 유지)
+    const isDesktop = window.innerWidth >= 768;
     let loginPromptBtn = document.getElementById('subAdminLoginPromptBtn');
     const headerContainer = adminBtn ? adminBtn.parentElement : null;
     if (headerContainer) {
-        if (!isAdmin) {
+        if (!isAdmin && isDesktop) {
             if (!loginPromptBtn) {
                 loginPromptBtn = document.createElement('button');
                 loginPromptBtn.id = 'subAdminLoginPromptBtn';
@@ -424,6 +425,10 @@ function updateSubscriptionAdminUI() {
 }
 
 function promptQuickAdminLogin() {
+    if (window.innerWidth < 768) {
+        alert('관계자 모드는 PC 데스크톱 환경에서만 이용 가능합니다.');
+        return;
+    }
     const pw = window.prompt('🔑 관계자 비밀번호(PW)를 입력해 주세요:\n(초기 비밀번호: 1234)');
     if (pw === null) return;
 

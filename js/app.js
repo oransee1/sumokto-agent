@@ -156,10 +156,17 @@ const AuthManager = {
   },
 
   isLoggedIn() {
+    // 핸드폰 모바일 화면(768px 미만)에서는 항상 일반 모드만 유지 (관계자 모드 비노출)
+    if (window.innerWidth < 768) {
+      return false;
+    }
     return this.getCurrentUser() !== null;
   },
 
   login(id, pw) {
+    if (window.innerWidth < 768) {
+      return { success: false, message: '관계자 모드는 PC 데스크톱 환경에서만 이용 가능합니다.' };
+    }
     const users = this.getUsers();
     const found = users.find(u => u.id === id.trim() && u.pw === pw.trim());
     if (found) {
@@ -923,10 +930,15 @@ const UI = {
 
   // DOM 이벤트 등록
   bindEvents() {
-    // 1. 상단 좌측 로고 / 상호 / 관계자 모드 버튼 클릭 -> 관계자 모드 상태면 일반 모드로 전환, 일반 모드면 로그인 모달 열기
+    // 1. 상단 좌측 로고 / 상호 / 관계자 모드 버튼 클릭 -> PC 데스크톱에서만 관계자 모드 전환, 모바일은 일반 모드 유지
     const brandLogoBtn = document.getElementById('brandLogoBtn');
     if (brandLogoBtn) {
-      brandLogoBtn.addEventListener('click', () => {
+      brandLogoBtn.addEventListener('click', (e) => {
+        // 핸드폰 모바일 환경에서는 일반 모드만 유지 (관계자 로그인 모달 호출 차단)
+        if (window.innerWidth < 768) {
+          this.scrollToSection('home', e);
+          return;
+        }
         if (AuthManager.isLoggedIn()) {
           this.switchToNormalMode();
         } else {
@@ -1729,10 +1741,10 @@ const UI = {
       if (typeof updateSubscriptionAdminUI === 'function') updateSubscriptionAdminUI();
     } else {
       if (brandLogoBtn) {
-        brandLogoBtn.title = '클릭하여 관계자 모드(ID/PW) 열기';
+        brandLogoBtn.title = (window.innerWidth >= 768) ? '클릭하여 관계자 모드(ID/PW) 열기' : '도안수목토 재벌부동산';
       }
       if (brandRoleBadge) {
-        brandRoleBadge.title = '클릭하여 관계자 모드(ID/PW) 열기';
+        brandRoleBadge.title = (window.innerWidth >= 768) ? '클릭하여 관계자 모드(ID/PW) 열기' : '';
       }
       if (adminBadge) {
         adminBadge.classList.remove('flex', 'md:flex');
@@ -1741,7 +1753,7 @@ const UI = {
         adminBadge.innerHTML = '';
       }
       if (mobileAuthText) {
-        mobileAuthText.textContent = '관계자 모드 (관리자 로그인)';
+        mobileAuthText.textContent = '';
       }
       if (footerAuthBtn) {
         footerAuthBtn.textContent = '관계자 관리자 로그인';

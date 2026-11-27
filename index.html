@@ -414,9 +414,6 @@
             <a href="javascript:void(0)" onclick="openConsultingModal(); const m=document.getElementById('mobileMenu'); if(m) m.classList.add('hidden');" class="block text-gray-300 hover:text-gold py-2 text-base font-medium cursor-pointer">고객 등록</a>
             <a href="javascript:void(0)" onclick="openQrModal(); const m=document.getElementById('mobileMenu'); if(m) m.classList.add('hidden');" class="block text-gray-300 hover:text-gold py-2 text-base font-medium cursor-pointer">외부 전달</a>
             <a href="javascript:void(0)" onclick="openSubscriptionModal(); const m=document.getElementById('mobileMenu'); if(m) m.classList.add('hidden');" class="block text-gray-300 hover:text-gold py-2 text-base font-medium cursor-pointer">분양 정보</a>
-            <button onclick="document.getElementById('brandLogoBtn').click(); document.getElementById('mobileMenu').classList.add('hidden');" class="w-full text-left text-gold font-bold pt-3 pb-1 text-sm border-t border-gray-800 flex items-center gap-2">
-                <span>⚙</span> <span id="mobileAuthText">관계자 모드 (관리자 로그인)</span>
-            </button>
         </div>
     </header>
 
@@ -678,7 +675,7 @@
                         운영시간: 평일 09:30 ~ 19:00<br>
                         주말 및 공휴일: 사전 예약제 VIP 상담 진행
                     </p>
-                    <button id="footerAuthBtn" onclick="document.getElementById('brandLogoBtn').click()" class="text-xs text-white hover:text-gold underline inline-block transition-colors">
+                    <button id="footerAuthBtn" onclick="document.getElementById('brandLogoBtn').click()" class="hidden md:inline-block text-xs text-white hover:text-gold underline transition-colors">
                         관계자 관리자 로그인
                     </button>
                 </div>
