@@ -12,151 +12,102 @@
 // ==========================================
 const DEFAULT_PROPERTIES = [
   {
-    id: 'PROP-1001',
-    type: '주거',
-    subType: '아파트',
-    dealType: '매매',
-    title: '도안 수목토 아파트 로얄동',
-    location: '대전광역시 서구 도안동',
-    price: '6억 8,000만',
-    priceNumber: 68000,
-    area: '112㎡ (34평형)',
-    floor: '18층 / 25층',
-    tags: '#남향 #초품아 #탁트인조망 #올수리',
-    description: '도안신도시 중심 입지! 일조권과 조망이 매우 우수하며 내부 인테리어 올수리 완료되어 즉시 입주 가능합니다.',
-    featured: 'Y',
-    imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
+    type: "주거",
+    subType: "아파트",
+    dealType: "매매",
+    title: "도안수목토아파트 108동 2104호",
+    location: "대전광역시 서구 도안동",
+    price: "4억 9800만",
+    priceNumber: 49800,
+    floorType: "C-Type",
+    area: "112㎡ (34평형)",
+    floor: "21층 / 22층",
+    tags: "#남향 #로얄층 #뷰좋은집 #팬트리",
+    description: "* 정남향 C타입으로 따뜻한 햇살이 풍부하게 들어와 밝고 쾌적한 집입니다.\n*🧳 출입구 팬트리가 있어 외출용품과 생활용품을 깔끔하게 정리하기 좋습니다.\n* 주방 옆 다용도실도 넉넉한 구조로 세탁용품과 각종 살림살이 수납이 편리합니다.\n*🌿 21층의 높은 층에서 바라보는 탁 트인 뷰가 아름다워 개방감이 돋보이는 집입니다.\n*✨ 정남향 채광과 넉넉한 수납, 아름다운 조망까지 갖춘 C타입 추천 매물입니다.",
+    featured: "Y",
+    imageUrl: "images/properties/PROP-267480_1.jpg",
     images: [
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=800&q=80'
+      "images/properties/PROP-267480_1.jpg"
     ],
-    contact: '042-546-4900',
-    mapImageUrl: 'images/A-Type-Plan03.png'
+    contact: "010-6480-8287",
+    mapImageUrl: "images/C-Type-Plan03.png",
+    lat: 36.3236309850031,
+    lng: 127.346740231544,
+    id: "PROP-267480"
   },
   {
-    id: 'PROP-1002',
-    type: '주거',
-    subType: '아파트',
-    dealType: '전세',
-    title: '도안 힐스테이트 고층 로얄뷰',
-    location: '대전광역시 서구 도안동',
-    price: '4억 5,000만',
-    priceNumber: 45000,
-    area: '84㎡ (25평형)',
-    floor: '22층 / 30층',
-    tags: '#신축급 #역세권 #시스템에어컨 #융자없음',
-    description: '도안 핵심 생활권, 학군 및 편의시설 인접. 융자 없는 안심 전세 매물로 신혼부부 및 소가족 강력 추천합니다.',
-    featured: 'Y',
-    imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80',
+    type: "상가",
+    subType: "상가",
+    dealType: "월세",
+    title: "계룡오피스텔 1층 무권리상가",
+    location: "충청남도 계룡시 엄사면 번영로 12",
+    price: "월세 2,000 / 95만원",
+    priceNumber: 95,
+    floorType: "None",
+    area: "62.4㎡ (19평형)",
+    floor: "1층 / 5층",
+    tags: "#검증된입지 #장사하기좋은대박자리",
+    description: "📌 계룡시 엄사면 계룡오피스텔 1층 상가\n\n🔥 검증된 입지! 장사하기 좋은 대박 자리!\n✔️ 기존 음식점으로 운영되었던 상가\n✔️ 음식점 입지로 이미 알려진 검증된 자리\n✔️ 계룡오피스텔 본건물 주차장 이용 편리\n✔️ 유동인구가 풍부하고 상권이 발달한 상업지역\n✔️1층 상가로 고객 접근성 우수\n\n💰💰 좋은 자리는 이유가 있습니다!\n\n이미 음식점으로 홍보되고 운영되었던 자리인 만큼\n입지와 주변 상권의 장점을 눈여겨보실 만합니다.\n\n👉 검증된 입지에서 새로운 성공을 시작하세요!!",
+    featured: "Y",
+    imageUrl: "images/properties/PROP-725042_1.jpg",
     images: [
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80'
+      "images/properties/PROP-725042_1.jpg"
     ],
-    contact: '042-546-4900',
-    mapImageUrl: ''
+    lat: 36.28828,
+    lng: 127.24377,
+    contact: "010-6480-8287",
+    mapImageUrl: "",
+    id: "PROP-725042"
   },
   {
-    id: 'PROP-1003',
-    type: '주거',
-    subType: '주상복합',
-    dealType: '매매',
-    title: '대전 하늘채 루시에르 하이엔드',
-    location: '대전광역시 중구 선화동',
-    price: '12억 5,000만',
-    priceNumber: 125000,
-    area: '140㎡ (42평형)',
-    floor: '38층 / 49층',
-    tags: '#초고층 #파노라마뷰 #하이엔드 #풀옵션',
-    description: '대전을 대표하는 럭셔리 주상복합 펜트하우스급 파노라마 조망. 최고급 이태리 수입 자재 시공 및 호텔식 컨시어지 서비스 제공.',
-    featured: 'Y',
-    imageUrl: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=800&q=80',
-    contact: '042-546-4900'
+    type: "주거",
+    subType: "아파트",
+    dealType: "매매",
+    title: "도안아이파크아파트 1502동  1903호",
+    location: "대전광역시 서구 도안동",
+    price: "5억 7500만",
+    priceNumber: 57500,
+    area: "114.22㎡ (35평형)",
+    floor: "19층 / 25층",
+    tags: "#남동향 #로얄층 #뷰좋은집 #갑천뷰영구조망",
+    description: "갑천뷰 영구 조망과 양창으로 뛰어난 채광이 돋보이는 집입니다.\n\n1.🏡 아이파크아파트 1502동 우리집의 장점\n* 앞동에 위치해 탁 트인 영구 조망을 누릴 수 있는 매물입니다.\n* 양창 구조로 채광이 좋아 집 안이 밝고 따뜻합니다.\n* 주방 옆 다용도실이 있어 생활용품 수납과 주방 활용이 편리합니다.\n\n*✨ 실거주로 잘 관리된 집이며, 전체적으로 깔끔한 컨디션을 유지하고 있습니다.\n\n*💛 좋은 조망과 채광, 편리한 수납을 중요하게 생각하시는 분들께 추천드립니다.",
+    featured: "Y",
+    imageUrl: "images/properties/PROP-812414_1.jpg",
+    images: [
+      "images/properties/PROP-812414_1.jpg",
+      "images/properties/PROP-812414_2.jpg",
+      "images/properties/PROP-812414_3.jpg"
+    ],
+    lat: 36.3212,
+    lng: 127.34705,
+    contact: "010-6480-8287",
+    mapImageUrl: "images/D-Type-Plan03.webp",
+    id: "PROP-812414",
+    floorType: "D-Type"
   },
   {
-    id: 'PROP-1004',
-    type: '주거',
-    subType: '아파트',
-    dealType: '월세',
-    title: '도안 아이파크 쾌적한 남향',
-    location: '대전광역시 서구 도안동',
-    price: '보증금 5,000만 / 월 180만',
-    priceNumber: 5000,
-    area: '115㎡ (35평형)',
-    floor: '10층 / 20층',
-    tags: '#남서향 #단지내조경 #확장형 #쾌적',
-    description: '넓은 동간 거리와 풍부한 녹지 조경. 채광이 하루종일 우수하며 깨끗하게 관리되어 깔끔한 상태를 유지하고 있습니다.',
-    featured: 'N',
-    imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-    contact: '042-546-4900'
-  },
-  {
-    id: 'PROP-2001',
-    type: '상가',
-    subType: '근린상가',
-    dealType: '월세',
-    title: '도안 수목토 메인대로변 1층 코너 상가',
-    location: '대전광역시 서구 도안동',
-    price: '보증금 5,000만 / 월 320만',
-    priceNumber: 5000,
-    area: '66㎡ (20평)',
-    floor: '1층 / 5층',
-    tags: '#대로변코너 #가시성최상 #무권리금 #카페추천',
-    description: '유동인구 및 대단지 아파트 배후수요가 집중되는 메인 통로 상가. 카페, 베이커리, 약국, 프랜차이즈 강력 추천.',
-    featured: 'Y',
-    imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
-    contact: '042-546-4900'
-  },
-  {
-    id: 'PROP-2002',
-    type: '상가',
-    subType: '상가건물',
-    dealType: '매매',
-    title: '유성 도안 신축 상가빌딩 통매매',
-    location: '대전광역시 유성구 상대동',
-    price: '35억',
-    priceNumber: 350000,
-    area: '대지 330㎡ / 연면적 680㎡',
-    floor: '지하1층 ~ 지상4층',
-    tags: '#수익률5% #우량임차완료 #안정적수익',
-    description: '현재 전층 우량 임차인 입주 완료(병의원, 학원, 유명 프랜차이즈), 공실 걱정 없는 연 5% 이상 고수익 빌딩 매물.',
-    featured: 'Y',
-    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
-    contact: '042-546-4900'
-  },
-  {
-    id: 'PROP-2003',
-    type: '상가',
-    subType: '사무실',
-    dealType: '월세',
-    title: '도안 테크노밸리 스마트 오피스',
-    location: '대전광역시 유성구 용산동',
-    price: '보증금 3,000만 / 월 180만',
-    priceNumber: 3000,
-    area: '132㎡ (40평)',
-    floor: '6층 / 10층',
-    tags: '#인테리어완비 #주차편리 #즉시입주 #룸3개',
-    description: '대표실, 대회의실, 탕비공간 인테리어 완비. 시스템 냉난방기 설치되어 가구 집기만 가지고 바로 근무 가능합니다.',
-    featured: 'N',
-    imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
-    contact: '042-546-4900'
-  },
-  {
-    id: 'PROP-2004',
-    type: '상가',
-    subType: '근린상가',
-    dealType: '매매',
-    title: '도안 2단계 신상권 2층 병의원 개원자리',
-    location: '대전광역시 유성구 복용동',
-    price: '7억 8,000만',
-    priceNumber: 78000,
-    area: '148㎡ (45평)',
-    floor: '2층 / 7층',
-    tags: '#신축상가 #소아과치과추천 #엘리베이터앞',
-    description: '배후 1만 세대 항아리 상권 초입 메인 코너 위치. 소아과, 치과, 한의원, 대형 전문학원 개원에 최적화된 자리입니다.',
-    featured: 'N',
-    imageUrl: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80',
-    contact: '042-546-4900'
+    type: "주거",
+    subType: "아파트",
+    dealType: "매매",
+    title: "도안수목토아파트 101동 203호",
+    location: "대전광역시 서구 도안동",
+    price: "4억 7000만",
+    priceNumber: 47000,
+    area: "112㎡ (34평형)",
+    floor: "2층 / 15층",
+    tags: "#남서향 #호수공원입접동 #드레스룸넓은구조 #최근리모델링",
+    description: "호수공원과 인접한 저층 세대로 편안한 주거 환경을 영위할 수 있습니다.✨",
+    featured: "Y",
+    imageUrl: "images/properties/PROP-717566_1.jpg",
+    images: [
+      "images/properties/PROP-717566_1.jpg"
+    ],
+    lat: 36.3204,
+    lng: 127.34705,
+    contact: "010-6480-8287",
+    mapImageUrl: "images/B-Type-Plan03.png",
+    id: "PROP-717566",
+    floorType: "B-Type"
   }
 ];
 
@@ -527,7 +478,7 @@ const PropertyManager = {
   KEY_DELETED: 'chebol_deleted_property_ids',
   KEY_MODIFIED: 'chebol_modified_properties',
   DATA_VERSION_KEY: 'chebol_properties_version',
-  CURRENT_VERSION: '20261125_v3',
+  CURRENT_VERSION: '20261127_v100',
   properties: [],
 
   getDeletedIds() {
@@ -586,12 +537,17 @@ const PropertyManager = {
             else if (p.title && p.title.includes('101동')) p.floorType = 'A-Type';
             else if (p.title && p.title.includes('108동')) p.floorType = 'C-Type';
           }
-          // 도안수목토 아파트인 경우에만 공식 평면도 매칭, 그 외 단지(도안아이파크 등)는 빈값('') 처리
+          // 도안수목토 및 아이파크 공식 평면도 매칭
           if (p.title && p.title.includes('수목토')) {
             const raw = (p.floorType || '').toUpperCase();
-            if (raw.includes('B') || raw.includes('D')) p.mapImageUrl = 'images/B-Type-Plan03.png';
+            if (raw.includes('D')) p.mapImageUrl = 'images/D-Type-Plan03.webp';
+            else if (raw.includes('B')) p.mapImageUrl = 'images/B-Type-Plan03.png';
             else if (raw.includes('C')) p.mapImageUrl = 'images/C-Type-Plan03.png';
             else p.mapImageUrl = 'images/A-Type-Plan03.png';
+          } else if (p.title && p.title.includes('아이파크')) {
+            const raw = (p.floorType || '').toUpperCase();
+            if (raw.includes('D')) p.mapImageUrl = 'images/D-Type-Plan03.webp';
+            else p.mapImageUrl = '';
           } else {
             p.mapImageUrl = '';
           }
@@ -650,12 +606,17 @@ const PropertyManager = {
               else if (p.title && p.title.includes('101동')) p.floorType = 'A-Type';
               else if (p.title && p.title.includes('108동')) p.floorType = 'C-Type';
             }
-            // 도안수목토 아파트인 경우에만 공식 평면도 매칭, 그 외 단지는 빈값('') 처리
+            // 도안수목토 및 아이파크 공식 평면도 매칭
             if (p.title && p.title.includes('수목토')) {
               const raw = (p.floorType || '').toUpperCase();
-              if (raw.includes('B') || raw.includes('D')) p.mapImageUrl = 'images/B-Type-Plan03.png';
+              if (raw.includes('D')) p.mapImageUrl = 'images/D-Type-Plan03.webp';
+              else if (raw.includes('B')) p.mapImageUrl = 'images/B-Type-Plan03.png';
               else if (raw.includes('C')) p.mapImageUrl = 'images/C-Type-Plan03.png';
               else p.mapImageUrl = 'images/A-Type-Plan03.png';
+            } else if (p.title && p.title.includes('아이파크')) {
+              const raw = (p.floorType || '').toUpperCase();
+              if (raw.includes('D')) p.mapImageUrl = 'images/D-Type-Plan03.webp';
+              else p.mapImageUrl = '';
             } else {
               p.mapImageUrl = '';
             }

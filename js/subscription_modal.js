@@ -8,7 +8,26 @@
 // 기본 분양 정보 프리셋 (핸드폰 모바일, 신규 기기 접속 시에도 100% 동일한 분양 내용이 노출되도록 보장)
 const DEFAULT_SUBSCRIPTION_DATA = [
     {
-        id: 'sub-preset-1',
+        id: 'sub-custom-1795641102766',
+        title: '도안자이 센템리체',
+        tag: '84㎡ · 99㎡ · 115㎡ · 134㎡(펜트하우스)',
+        tagBg: 'bg-carrot',
+        scale: '총 2,293세대',
+        scaleSub: '',
+        specs: '대전광역시 유성구 용계동 267-3번지 일원',
+        desc: '“트램 2호선 용계역(예정) 생활권, 초·중·고 트리플 학세권(계획), 서남부스포츠타운·도안 후속개발 기대”',
+        homepage: 'https://doanxi.littlesealstudio.workers.dev/?utm_source=google&utm_medium=cpc&utm_term=%EB%8F%84%EC%95%88%EC%9E%90%EC%9D%B4%EC%84%BC%ED%85%80%EB%A6%AC%EC%B2%B4&utm_campaign=24116941595&matchtype=e&device=c&gad_source=1&gad_campaignid=24116941595&gbraid=0AAAABEbO4J1r31pKjum6f8mCPtqTgBVZ4&gclid=CjwKCAiAq5rYBhB-EiwAhj1RdlyP2sdMWjHFWLWioe1odHZKmltTbz2Xb1Y3XoKi6DSGpuxRzICDnhoCzWQQAvD_BwE#premium',
+        youtube: 'https://www.youtube.com/watch?v=NOF7rM25Ito&t=7s',
+        badges: [
+            { text: '사전접수', style: 'bg-[#0d2a1f] text-[#3fb950] border-[#238636]/50 shadow-sm' }
+        ],
+        img: 'images/sub_doanxi_thumb.jpg',
+        thumbnail: 'images/sub_doanxi_thumb.jpg',
+        lat: 36.3250357555633,
+        lng: 127.327007213844
+    },
+    {
+        id: 'sub-custom-1795483617208',
         title: '대전 선화동 하늘채 루시에르',
         tag: '105타입, 119타입 분양중',
         tagBg: 'bg-carrot',
@@ -16,7 +35,7 @@ const DEFAULT_SUBSCRIPTION_DATA = [
         scaleSub: '',
         specs: '대전광역시 중구 선화동 95-3 일원',
         desc: '“트램 2호선 역세권, 중구청 건립 수혜지역”',
-        homepage: 'https://domus-vision.com',
+        homepage: 'https://www.domus-vision.com/',
         youtube: 'https://www.youtube.com/watch?v=yDVMokqyoD8',
         badges: [
             { text: '분양중', style: 'bg-[#2d1200] text-[#ff7a22] border-[#ff7a22]/50 shadow-sm' }

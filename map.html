@@ -668,6 +668,27 @@
         // 실제 등록 매물 데이터 (기본 3건 - 정확한 동별 건물 및 전국 주소 좌표 적용)
         const BACKUP_PROPERTIES = [
             {
+                id: 'PROP-267480',
+                type: '주거',
+                subType: '아파트',
+                dealType: '매매',
+                title: '도안수목토아파트 108동 2104호',
+                location: '대전광역시 서구 도안동',
+                lat: 36.3236309850031,
+                lng: 127.346740231544,
+                price: '4억 9800만',
+                priceNumber: 49800,
+                floorType: 'C-Type',
+                area: '112㎡ (34평형)',
+                floor: '21층 / 22층',
+                tags: '#남향 #로얄층 #뷰좋은집 #팬트리',
+                description: '* 정남향 C타입으로 따뜻한 햇살이 풍부하게 들어와 밝고 쾌적한 집입니다.\n*🧳 출입구 팬트리가 있어 외출용품과 생활용품을 깔끔하게 정리하기 좋습니다.\n* 주방 옆 다용도실도 넉넉한 구조로 세탁용품과 각종 살림살이 수납이 편리합니다.\n*🌿 21층의 높은 층에서 바라보는 탁 트인 뷰가 아름다워 개방감이 돋보이는 집입니다.\n*✨ 정남향 채광과 넉넉한 수납, 아름다운 조망까지 갖춘 C타입 추천 매물입니다.',
+                imageUrl: 'images/properties/PROP-267480_1.jpg',
+                images: ['images/properties/PROP-267480_1.jpg'],
+                mapImageUrl: 'images/C-Type-Plan03.png',
+                contact: '010-6480-8287'
+            },
+            {
                 id: 'PROP-725042',
                 type: '상가',
                 subType: '상가',
@@ -683,8 +704,8 @@
                 floor: '1층 / 5층',
                 tags: '#검증된입지 #장사하기좋은대박자리',
                 description: '📌 계룡시 엄사면 계룡오피스텔 1층 상가\n\n🔥 검증된 입지! 장사하기 좋은 대박 자리!',
-                imageUrl: 'images/preview_complex.jpg',
-                images: ['images/preview_complex.jpg'],
+                imageUrl: 'images/properties/PROP-725042_1.jpg',
+                images: ['images/properties/PROP-725042_1.jpg'],
                 mapImageUrl: '',
                 contact: '010-6480-8287'
             },
@@ -693,7 +714,7 @@
                 type: '주거',
                 subType: '아파트',
                 dealType: '매매',
-                title: '도안아이파크아파트 1502동 1903호',
+                title: '도안아이파크아파트 1502동  1903호',
                 location: '대전광역시 서구 도안동',
                 lat: 36.32120,
                 lng: 127.34705,
@@ -702,15 +723,15 @@
                 floorType: 'D-Type',
                 area: '114.22㎡ (35평형)',
                 floor: '19층 / 25층',
-                tags: '#남향 #로얄층 #뷰좋은집 #갑천뷰영구조망',
+                tags: '#남동향 #로얄층 #뷰좋은집 #갑천뷰영구조망',
                 description: '갑천뷰 영구 조망과 양창으로 뛰어난 채광이 돋보이는 집입니다.\n앞동에 위치해 탁 트인 조망을 누릴 수 있으며 주방 옆 다용도실이 있어 생활이 편리합니다.',
-                imageUrl: 'images/view_2k.jpg',
+                imageUrl: 'images/properties/PROP-812414_1.jpg',
                 images: [
-                    'images/view_2k.jpg',
-                    'images/preview_complex.jpg',
-                    'images/단지조감도_2K.jpg'
+                    'images/properties/PROP-812414_1.jpg',
+                    'images/properties/PROP-812414_2.jpg',
+                    'images/properties/PROP-812414_3.jpg'
                 ],
-                mapImageUrl: '',
+                mapImageUrl: 'images/D-Type-Plan03.webp',
                 contact: '010-6480-8287'
             },
             {
@@ -724,19 +745,15 @@
                 lng: 127.34705,
                 price: '4억 7000만',
                 priceNumber: 47000,
-                floorType: 'A-Type',
+                floorType: 'B-Type',
                 area: '112㎡ (34평형)',
                 floor: '2층 / 15층',
                 tags: '#남서향 #호수공원입접동 #드레스룸넓은구조 #최근리모델링',
                 description: '호수공원과 인접한 저층 세대로 편안한 주거 환경을 영위할 수 있습니다.✨',
-                imageUrl: 'images/bird_view_2k.jpg',
-                images: [
-                    'images/bird_view_2k.jpg',
-                    'images/preview_complex.jpg',
-                    'images/A-Type-Plan03.png'
-                ],
-                mapImageUrl: 'images/A-Type-Plan03.png',
-                contact: '042-546-4900'
+                imageUrl: 'images/properties/PROP-717566_1.jpg',
+                images: ['images/properties/PROP-717566_1.jpg'],
+                mapImageUrl: 'images/B-Type-Plan03.png',
+                contact: '010-6480-8287'
             }
         ];
 
@@ -866,21 +883,42 @@
                     deletedIds = JSON.parse(localStorage.getItem('sumokto_deleted_subs') || '[]');
                 } catch(e) {}
                 if (deletedIds.length === 0) {
-                    list = [{
-                        id: 'sub-preset-1',
-                        title: '대전 선화동 하늘채 루시에르',
-                        tag: '105타입, 119타입 분양중',
-                        scale: '총 998세대',
-                        specs: '대전광역시 중구 선화동 95-3 일원',
-                        desc: '“트램 2호선 역세권, 중구청 건립 수혜지역”',
-                        homepage: 'https://domus-vision.com',
-                        youtube: 'https://www.youtube.com/watch?v=yDVMokqyoD8',
-                        badges: [{ text: '분양중', style: 'bg-[#2d1200] text-[#ff7a22] border-[#ff7a22]/50 shadow-sm' }],
-                        img: 'images/sub_hanulche_thumb.jpg',
-                        thumbnail: 'images/sub_hanulche_thumb.jpg',
-                        lat: 36.33481,
-                        lng: 127.41979
-                    }];
+                    list = [
+                        {
+                            id: 'sub-custom-1795641102766',
+                            title: '도안자이 센템리체',
+                            tag: '84㎡ · 99㎡ · 115㎡ · 134㎡(펜트하우스)',
+                            tagBg: 'bg-carrot',
+                            scale: '총 2,293세대',
+                            scaleSub: '',
+                            specs: '대전광역시 유성구 용계동 267-3번지 일원',
+                            desc: '“트램 2호선 용계역(예정) 생활권, 초·중·고 트리플 학세권(계획), 서남부스포츠타운·도안 후속개발 기대”',
+                            homepage: 'https://doanxi.littlesealstudio.workers.dev/?utm_source=google&utm_medium=cpc&utm_term=%EB%8F%84%EC%95%88%EC%9E%90%EC%9D%B4%EC%84%BC%ED%85%80%EB%A6%AC%EC%B2%B4&utm_campaign=24116941595&matchtype=e&device=c&gad_source=1&gad_campaignid=24116941595&gbraid=0AAAABEbO4J1r31pKjum6f8mCPtqTgBVZ4&gclid=CjwKCAiAq5rYBhB-EiwAhj1RdlyP2sdMWjHFWLWioe1odHZKmltTbz2Xb1Y3XoKi6DSGpuxRzICDnhoCzWQQAvD_BwE#premium',
+                            youtube: 'https://www.youtube.com/watch?v=NOF7rM25Ito&t=7s',
+                            badges: [{ text: '사전접수', style: 'bg-[#0d2a1f] text-[#3fb950] border-[#238636]/50 shadow-sm' }],
+                            img: 'images/sub_doanxi_thumb.jpg',
+                            thumbnail: 'images/sub_doanxi_thumb.jpg',
+                            lat: 36.3250357555633,
+                            lng: 127.327007213844
+                        },
+                        {
+                            id: 'sub-custom-1795483617208',
+                            title: '대전 선화동 하늘채 루시에르',
+                            tag: '105타입, 119타입 분양중',
+                            tagBg: 'bg-carrot',
+                            scale: '총 998세대',
+                            scaleSub: '',
+                            specs: '대전광역시 중구 선화동 95-3 일원',
+                            desc: '“트램 2호선 역세권, 중구청 건립 수혜지역”',
+                            homepage: 'https://domus-vision.com',
+                            youtube: 'https://www.youtube.com/watch?v=yDVMokqyoD8',
+                            badges: [{ text: '분양중', style: 'bg-[#2d1200] text-[#ff7a22] border-[#ff7a22]/50 shadow-sm' }],
+                            img: 'images/sub_hanulche_thumb.jpg',
+                            thumbnail: 'images/sub_hanulche_thumb.jpg',
+                            lat: 36.33481,
+                            lng: 127.41979
+                        }
+                    ];
                 }
             }
 
@@ -1140,7 +1178,7 @@
             // 2순위: GitHub Raw URL fetch (GitHub 커밋 즉시 실시간 동기화)
             if (loaded.length === 0) {
                 try {
-                    const rawUrl = `https://raw.githubusercontent.com/oransee3/SuMokTo-Webpage/main/data/properties.json?t=${Date.now()}`;
+                    const rawUrl = `https://raw.githubusercontent.com/oransee1/sumokto-agent/main/data/properties.json?t=${Date.now()}`;
                     const res = await fetch(rawUrl, { cache: 'no-store' });
                     if (res.ok) {
                         const json = await res.json();
